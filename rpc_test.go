@@ -41,7 +41,7 @@ func (t *Arith) Error(args *msg.ArithRequest, reply *msg.ArithResponse) error {
 type Echo int
 
 func (t *Echo) Echo(args *msg.EchoRequest, reply *msg.EchoResponse) error {
-	time.Sleep(time.Second)
+	time.Sleep(time.Microsecond * 500)
 	reply.Msg = args.Msg
 	return nil
 }
@@ -237,7 +237,7 @@ func testEchoClientAsync(t *testing.T, client *tinyrpc.Client) {
 	// EchoService.Echo
 	args := &msg.EchoRequest{Msg: "Hello, Protobuf-RPC"}
 	reply := &msg.EchoResponse{}
-	echoCall := client.Go("EchoService.Echo", args, reply, nil, 2*time.Second)
+	echoCall := client.Go("EchoService.Echo", args, reply, nil, time.Second)
 
 	// sleep 1s
 	time.Sleep(time.Second)

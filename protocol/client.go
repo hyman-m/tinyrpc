@@ -1,3 +1,7 @@
+// Copyright 2021 <mzh.scnu@qq.com>. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package protocol
 
 import (
@@ -43,7 +47,7 @@ func (c *clientCodec) WriteRequest(r *tinyrpc.Request, param interface{}) error 
 	if param != nil {
 		var ok bool
 		if request, ok = param.(proto.Message); !ok {
-			return errors.New("param does not implement proto.Message")
+			return NotImplementProtoMessageError
 		}
 	}
 	err := writeRequest(c.w, r, c.compress, request)
@@ -84,7 +88,7 @@ func writeRequest(w io.Writer, r *tinyrpc.Request, isCompressed bool, request pr
 		return err
 	}
 	if len(pbHeader) > int(header.Const_MAX_HEADER_LEN) {
-		return errors.New("header exceeds the maximum limit length")
+		return MaxLimitLengthHeaderError
 	}
 
 	if err := sendFrame(w, pbHeader); err != nil {
@@ -147,7 +151,7 @@ func (c *clientCodec) ReadResponseBody(x interface{}) error {
 		var ok bool
 		response, ok = x.(proto.Message)
 		if !ok {
-			return errors.New("header exceeds the maximum limit length")
+			return NotImplementProtoMessageError
 		}
 	}
 

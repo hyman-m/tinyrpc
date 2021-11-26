@@ -1,8 +1,11 @@
+// Copyright 2021 <mzh.scnu@qq.com>. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package protocol
 
 import (
 	"bufio"
-	"errors"
 	"hash/crc32"
 	"io"
 	"sync"
@@ -79,7 +82,7 @@ func (s *serverCodec) ReadRequestBody(x interface{}) error {
 
 	request, ok := x.(proto.Message)
 	if !ok {
-		return errors.New("param does not implement proto.Message")
+		return NotImplementProtoMessageError
 	}
 
 	err := readRequestBody(s.r, &s.request, request)
@@ -101,7 +104,7 @@ func readRequestBody(r io.Reader, h *header.RequestHeader, request proto.Message
 
 	if h.Checksum != 0 {
 		if crc32.ChecksumIEEE(requestLen) != h.Checksum {
-			return errors.New("header exceeds the maximum limit length")
+			return UnexpectedChecksumError
 		}
 	}
 
@@ -134,7 +137,7 @@ func (s *serverCodec) WriteResponse(r *tinyrpc.Response, x interface{}) error {
 				s.mutex.Lock()
 				delete(s.pending, r.Seq)
 				s.mutex.Unlock()
-				return errors.New("param does not implement proto.Message")
+				return NotImplementProtoMessageError
 			}
 		}
 	}
@@ -143,7 +146,7 @@ func (s *serverCodec) WriteResponse(r *tinyrpc.Response, x interface{}) error {
 	id, ok := s.pending[r.Seq]
 	if !ok {
 		s.mutex.Unlock()
-		return errors.New("invalid sequence number in response")
+		return InvalidSequenceError
 	}
 	delete(s.pending, r.Seq)
 	s.mutex.Unlock()
