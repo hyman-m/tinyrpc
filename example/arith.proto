@@ -1,0 +1,25 @@
+// Copyright 2022 <mzh.scnu@qq.com>. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package message;
+option go_package="/message";
+
+// ArithService 运算服务
+service ArithService {
+  rpc Add(ArithRequest) returns (ArithResponse);  // Add 算数加法
+  rpc Sub(ArithRequest) returns (ArithResponse);  // Sub 算数减法
+  rpc Mul(ArithRequest) returns (ArithResponse);  // Mul 算数乘法
+  rpc Div(ArithRequest) returns (ArithResponse);  // Div 算数除法
+}
+
+message ArithRequest {
+  int32 a = 1;
+  int32 b = 2;
+}
+
+message ArithResponse {
+  int32 c = 1;
+}

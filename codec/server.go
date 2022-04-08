@@ -1,20 +1,20 @@
-// Copyright 2021 <mzh.scnu@qq.com>. All rights reserved.
+// Copyright 2022 <mzh.scnu@qq.com>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package protocol
+package codec
 
 import (
 	"bufio"
 	"hash/crc32"
 	"io"
+	"net/rpc"
 	"sync"
-	"time"
 
-	"github.com/cloudmzh/tinyrpc"
-	"github.com/cloudmzh/tinyrpc/header"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/snappy"
+	"github.com/zehuamama/tinyrpc/compressor"
+	"github.com/zehuamama/tinyrpc/errors"
+	"github.com/zehuamama/tinyrpc/header"
 )
 
 type serverCodec struct {
@@ -30,7 +30,7 @@ type serverCodec struct {
 }
 
 // NewServerCodec ...
-func NewServerCodec(conn io.ReadWriteCloser) tinyrpc.ServerCodec {
+func NewServerCodec(conn io.ReadWriteCloser) rpc.ServerCodec {
 	return &serverCodec{
 		r:       bufio.NewReader(conn),
 		w:       bufio.NewWriter(conn),
@@ -40,26 +40,24 @@ func NewServerCodec(conn io.ReadWriteCloser) tinyrpc.ServerCodec {
 }
 
 // ReadRequestHeader ...
-func (s *serverCodec) ReadRequestHeader(r *tinyrpc.Request) error {
-	h := header.RequestHeader{}
-	err := readRequestHeader(s.r, &h)
+func (s *serverCodec) ReadRequestHeader(r *rpc.Request) error {
+	s.request.ResetHeader()
+	err := readRequestHeader(s.r, &s.request)
 	if err != nil {
 		return err
 	}
 	s.mutex.Lock()
 	s.seq++
-	s.pending[s.seq] = h.Id
-	r.ServiceMethod = h.Method
+	s.pending[s.seq] = s.request.Id
+	r.ServiceMethod = s.request.Method
 	r.Seq = s.seq
-	r.TTL = time.UnixMilli(int64(h.Ttl))
 	s.mutex.Unlock()
-	s.request = h
 	return nil
 }
 
 // readRequestHeader ...
 func readRequestHeader(r io.Reader, h *header.RequestHeader) (err error) {
-	pbHeader, err := recvFrame(r, int(header.Const_MAX_HEADER_LEN))
+	pbHeader, err := recvFrame(r)
 	if err != nil {
 		return err
 	}
@@ -70,7 +68,7 @@ func readRequestHeader(r io.Reader, h *header.RequestHeader) (err error) {
 	return nil
 }
 
-func (s *serverCodec) ReadRequestBody(x interface{}) error {
+func (s *serverCodec) ReadRequestBody(x any) error {
 	if x == nil {
 		if s.request.RequestLen != 0 {
 			if err := read(s.r, make([]byte, s.request.RequestLen)); err != nil {
@@ -82,41 +80,35 @@ func (s *serverCodec) ReadRequestBody(x interface{}) error {
 
 	request, ok := x.(proto.Message)
 	if !ok {
-		return NotImplementProtoMessageError
+		return errors.NotImplementProtoMessageError
 	}
 
 	err := readRequestBody(s.r, &s.request, request)
 	if err != nil {
 		return nil
 	}
-	s.request = header.RequestHeader{}
 	return nil
 }
 
 // readRequestBody ...
 func readRequestBody(r io.Reader, h *header.RequestHeader, request proto.Message) error {
-	requestLen := make([]byte, h.RequestLen)
+	requestBody := make([]byte, h.RequestLen)
 
-	err := read(r, requestLen)
+	err := read(r, requestBody)
 	if err != nil {
 		return err
 	}
 
 	if h.Checksum != 0 {
-		if crc32.ChecksumIEEE(requestLen) != h.Checksum {
-			return UnexpectedChecksumError
+		if crc32.ChecksumIEEE(requestBody) != h.Checksum {
+			return errors.UnexpectedChecksumError
 		}
 	}
 
 	var pbRequest []byte
-
-	if h.IsCompressed {
-		pbRequest, err = snappy.Decode(nil, requestLen)
-		if err != nil {
-			return err
-		}
-	} else {
-		pbRequest = requestLen
+	pbRequest, err = compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(requestBody)
+	if err != nil {
+		return err
 	}
 
 	if request != nil {
@@ -128,7 +120,7 @@ func readRequestBody(r io.Reader, h *header.RequestHeader, request proto.Message
 	return nil
 }
 
-func (s *serverCodec) WriteResponse(r *tinyrpc.Response, x interface{}) error {
+func (s *serverCodec) WriteResponse(r *rpc.Response, x any) error {
 	var response proto.Message
 	if x != nil {
 		var ok bool
@@ -137,7 +129,7 @@ func (s *serverCodec) WriteResponse(r *tinyrpc.Response, x interface{}) error {
 				s.mutex.Lock()
 				delete(s.pending, r.Seq)
 				s.mutex.Unlock()
-				return NotImplementProtoMessageError
+				return errors.NotImplementProtoMessageError
 			}
 		}
 	}
@@ -146,12 +138,12 @@ func (s *serverCodec) WriteResponse(r *tinyrpc.Response, x interface{}) error {
 	id, ok := s.pending[r.Seq]
 	if !ok {
 		s.mutex.Unlock()
-		return InvalidSequenceError
+		return errors.InvalidSequenceError
 	}
 	delete(s.pending, r.Seq)
 	s.mutex.Unlock()
 
-	err := writeResponse(s.w, id, r.Error, s.request.IsCompressed, response)
+	err := writeResponse(s.w, id, r.Error, compressor.CompressType(s.request.CompressType), response)
 	if err != nil {
 		return err
 	}
@@ -160,7 +152,9 @@ func (s *serverCodec) WriteResponse(r *tinyrpc.Response, x interface{}) error {
 }
 
 // writeResponse ...
-func writeResponse(w io.Writer, id uint64, serr string, isCompressed bool, response proto.Message) (err error) {
+func writeResponse(w io.Writer, id uint64, serr string,
+	compressType compressor.CompressType, response proto.Message) (err error) {
+
 	if serr != "" {
 		response = nil
 	}
@@ -173,19 +167,18 @@ func writeResponse(w io.Writer, id uint64, serr string, isCompressed bool, respo
 	}
 
 	var compressedPbResponse []byte
-	if isCompressed {
-		compressedPbResponse = snappy.Encode(nil, pbResponse)
-	} else {
-		compressedPbResponse = pbResponse
-	}
 
-	h := &header.ResponseHeader{
-		Id:           id,
-		Error:        serr,
-		ResponseLen:  uint32(len(compressedPbResponse)),
-		Checksum:     crc32.ChecksumIEEE(compressedPbResponse),
-		IsCompressed: isCompressed,
-	}
+	compressedPbResponse, _ = compressor.Compressors[compressType].Zip(pbResponse)
+	h := header.ResponsePool.Get().(*header.ResponseHeader)
+	defer func() {
+		h.ResetHeader()
+		header.ResponsePool.Put(h)
+	}()
+	h.Id = id
+	h.Error = serr
+	h.ResponseLen = uint32(len(compressedPbResponse))
+	h.Checksum = crc32.ChecksumIEEE(compressedPbResponse)
+	h.CompressType = header.Compress(compressType)
 
 	pbHeader, err := proto.Marshal(h)
 	if err != err {

@@ -6,21 +6,24 @@ syntax = "proto3";
 
 package header;
 
-enum Const {
-	ZERO = 0;
-	MAX_HEADER_LEN = 1024;
+
+enum Compress{
+	Raw = 0;
+	Gzip = 1;
+	Snappy = 2;
+	Zlib = 3;
 }
+
 message RequestHeader {
-	bool   is_compressed = 1;
-	string method = 2;
-	uint64 id = 3;
-	uint32 request_len = 4;
-	uint32 checksum = 5;
-	uint64 ttl = 6;
+	Compress  compress_type = 1;
+	string 	method = 2;
+	uint64  id = 3;
+	uint32  request_len = 4;
+	uint32  checksum = 5;
 }
 
 message ResponseHeader {
-	bool   is_compressed = 1;
+	Compress compress_type = 1;
 	uint64 id = 2;
 	string error = 3;
 	uint32 response_len = 4;

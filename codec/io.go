@@ -1,13 +1,12 @@
-// Copyright 2021 <mzh.scnu@qq.com>. All rights reserved.
+// Copyright 2022 <mzh.scnu@qq.com>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package protocol
+package codec
 
 import (
 	"bufio"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"net"
 )
@@ -33,15 +32,10 @@ func sendFrame(w io.Writer, data []byte) (err error) {
 	return
 }
 
-func recvFrame(r io.Reader, maxSize int) (data []byte, err error) {
+func recvFrame(r io.Reader) (data []byte, err error) {
 	size, err := binary.ReadUvarint(r.(*bufio.Reader))
 	if err != nil {
 		return nil, err
-	}
-	if maxSize > 0 {
-		if int(size) > maxSize {
-			return nil, fmt.Errorf("protorpc: varint overflows maxSize(%d)", maxSize)
-		}
 	}
 	if size != 0 {
 		data = make([]byte, size)
@@ -55,10 +49,8 @@ func recvFrame(r io.Reader, maxSize int) (data []byte, err error) {
 func write(w io.Writer, data []byte) error {
 	for index := 0; index < len(data); {
 		n, err := w.Write(data[index:])
-		if err != nil {
-			if nerr, ok := err.(net.Error); !ok || !nerr.Temporary() {
-				return err
-			}
+		if _, ok := err.(net.Error); !ok {
+			return err
 		}
 		index += n
 	}
@@ -69,7 +61,7 @@ func read(r io.Reader, data []byte) error {
 	for index := 0; index < len(data); {
 		n, err := r.Read(data[index:])
 		if err != nil {
-			if nerr, ok := err.(net.Error); !ok || !nerr.Temporary() {
+			if _, ok := err.(net.Error); !ok {
 				return err
 			}
 		}
