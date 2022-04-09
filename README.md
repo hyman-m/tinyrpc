@@ -90,7 +90,7 @@ func (this *ArithService) Div(args *ArithRequest, reply *ArithResponse) error {
 ```
 We can define our services. 
 
-#Server
+# Server
 
 Then open a tinyrpc server, the code is as follows:
 ```go
