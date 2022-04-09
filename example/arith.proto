@@ -7,12 +7,16 @@ syntax = "proto3";
 package message;
 option go_package="/message";
 
-// ArithService 运算服务
+// ArithService Defining Computational Digital Services
 service ArithService {
-  rpc Add(ArithRequest) returns (ArithResponse);  // Add 算数加法
-  rpc Sub(ArithRequest) returns (ArithResponse);  // Sub 算数减法
-  rpc Mul(ArithRequest) returns (ArithResponse);  // Mul 算数乘法
-  rpc Div(ArithRequest) returns (ArithResponse);  // Div 算数除法
+  // Add addition
+  rpc Add(ArithRequest) returns (ArithResponse);
+  // Sub subtraction
+  rpc Sub(ArithRequest) returns (ArithResponse);
+  // Mul multiplication
+  rpc Mul(ArithRequest) returns (ArithResponse);
+  // Div division
+  rpc Div(ArithRequest) returns (ArithResponse);
 }
 
 message ArithRequest {

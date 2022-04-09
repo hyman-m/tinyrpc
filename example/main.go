@@ -14,7 +14,7 @@ import (
 	pb "github.com/zehuamama/tinyrpc/example/message"
 )
 
-// listenAndServe ...
+// listenAndServe start a tinyrpc service
 func listenAndServe() error {
 	lis, err := net.Listen("tcp", ":8082")
 	if err != nil {

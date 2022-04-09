@@ -2,29 +2,30 @@
 
 package message
 
-// ArithService 运算服务
+// ArithService rpc service
+// Defining Computational Digital Services
 type ArithService struct{}
 
-// Add 算数加法
+// Add addition
 func (this *ArithService) Add(args *ArithRequest, reply *ArithResponse) error {
-	reply.C = args.A + args.B
+	// define your service ...
 	return nil
 }
 
-// Sub 算数减法
+// Sub subtraction
 func (this *ArithService) Sub(args *ArithRequest, reply *ArithResponse) error {
-	reply.C = args.A - args.B
+	// define your service ...
 	return nil
 }
 
-// Mul 算数乘法
+// Mul multiplication
 func (this *ArithService) Mul(args *ArithRequest, reply *ArithResponse) error {
-	reply.C = args.A * args.B
+	// define your service ...
 	return nil
 }
 
-// Div 算数除法
+// Div division
 func (this *ArithService) Div(args *ArithRequest, reply *ArithResponse) error {
-	reply.C = args.A / args.B
+	// define your service ...
 	return nil
 }
