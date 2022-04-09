@@ -7,8 +7,6 @@ Currently only supports `Go 1.18` and above
 # Install
 
 
-
----
 - install `protoc` at first :http://github.com/google/protobuf/releases
 
 - install `protoc-gen-go` and `protoc-gen-tinyrpc`:
@@ -91,6 +89,7 @@ func (this *ArithService) Div(args *ArithRequest, reply *ArithResponse) error {
 }
 ```
 We can define our services. 
+
 #Server
 
 Then open a tinyrpc server, the code is as follows:
