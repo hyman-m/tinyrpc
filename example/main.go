@@ -34,6 +34,7 @@ func rpcClient() {
 	}
 	defer conn.Close()
 	client := tinyrpc.NewClient(conn)
+	defer client.Close()
 	resq := pb.ArithRequest{A: 20, B: 5}
 	resp := pb.ArithResponse{}
 	err = client.Call("ArithService.Add", &resq, &resp)
@@ -55,6 +56,7 @@ func rpcClientWithCompress() {
 	}
 	defer conn.Close()
 	client := tinyrpc.NewClientWithCompress(conn, compressor.Snappy)
+	defer client.Close()
 	resq := pb.ArithRequest{A: 4, B: 15}
 	resp := pb.ArithResponse{}
 	err = client.Call("ArithService.Mul", &resq, &resp)
@@ -71,6 +73,7 @@ func rpcClientWithAyncCall() {
 	}
 	defer conn.Close()
 	client := tinyrpc.NewClient(conn)
+	defer client.Close()
 	resq := pb.ArithRequest{A: 20, B: 5}
 	resp := pb.ArithResponse{}
 	result := client.AsyncCall("ArithService.Sub", &resq, &resp)

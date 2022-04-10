@@ -20,10 +20,10 @@ service ArithService {
 }
 
 message ArithRequest {
-  int32 a = 1;
-  int32 b = 2;
+  double a = 1;
+  double b = 2;
 }
 
 message ArithResponse {
-  int32 c = 1;
+  double c = 1;
 }

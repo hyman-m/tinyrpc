@@ -53,6 +53,7 @@ func (c *clientCodec) WriteRequest(r *rpc.Request, param any) error {
 	return nil
 }
 
+// ReadResponseHeader read the rpc response header from the io stream
 func (c *clientCodec) ReadResponseHeader(r *rpc.Response) error {
 	c.response.ResetHeader()
 	err := readResponseHeader(c.r, &c.response)
@@ -68,6 +69,7 @@ func (c *clientCodec) ReadResponseHeader(r *rpc.Response) error {
 	return nil
 }
 
+// ReadResponseBody read the rpc response body from the io stream
 func (c *clientCodec) ReadResponseBody(x any) error {
 	if x == nil {
 		if c.response.ResponseLen != 0 {
@@ -98,8 +100,6 @@ func readResponseHeader(r io.Reader, h *header.ResponseHeader) error {
 	return nil
 }
 
-// writeRequest Marshal the request body into a pb byte slice, compress it with a compressor,
-// marshal the request header into a pb byte slice, and then send the request header and body to the io stream
 func writeRequest(w io.Writer, r *rpc.Request,
 	compressType compressor.CompressType, param any) error {
 	var request proto.Message

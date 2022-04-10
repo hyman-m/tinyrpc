@@ -29,7 +29,7 @@ type serverCodec struct {
 	pending map[uint64]uint64
 }
 
-// NewServerCodec ...
+// NewServerCodec Create a new server codec
 func NewServerCodec(conn io.ReadWriteCloser) rpc.ServerCodec {
 	return &serverCodec{
 		r:       bufio.NewReader(conn),
@@ -39,7 +39,7 @@ func NewServerCodec(conn io.ReadWriteCloser) rpc.ServerCodec {
 	}
 }
 
-// ReadRequestHeader ...
+// ReadRequestHeader read the rpc request header from the io stream
 func (s *serverCodec) ReadRequestHeader(r *rpc.Request) error {
 	s.request.ResetHeader()
 	err := readRequestHeader(s.r, &s.request)
@@ -55,19 +55,7 @@ func (s *serverCodec) ReadRequestHeader(r *rpc.Request) error {
 	return nil
 }
 
-// readRequestHeader ...
-func readRequestHeader(r io.Reader, h *header.RequestHeader) (err error) {
-	pbHeader, err := recvFrame(r)
-	if err != nil {
-		return err
-	}
-	err = proto.Unmarshal(pbHeader, h)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
+// ReadRequestBody read the rpc request body from the io stream
 func (s *serverCodec) ReadRequestBody(x any) error {
 	if x == nil {
 		if s.request.RequestLen != 0 {
@@ -90,36 +78,7 @@ func (s *serverCodec) ReadRequestBody(x any) error {
 	return nil
 }
 
-// readRequestBody ...
-func readRequestBody(r io.Reader, h *header.RequestHeader, request proto.Message) error {
-	requestBody := make([]byte, h.RequestLen)
-
-	err := read(r, requestBody)
-	if err != nil {
-		return err
-	}
-
-	if h.Checksum != 0 {
-		if crc32.ChecksumIEEE(requestBody) != h.Checksum {
-			return errors.UnexpectedChecksumError
-		}
-	}
-
-	var pbRequest []byte
-	pbRequest, err = compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(requestBody)
-	if err != nil {
-		return err
-	}
-
-	if request != nil {
-		err = proto.Unmarshal(pbRequest, request)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
+// WriteResponse Write the rpc response header and body to the io stream
 func (s *serverCodec) WriteResponse(r *rpc.Response, x any) error {
 	var response proto.Message
 	if x != nil {
@@ -151,7 +110,47 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, x any) error {
 	return nil
 }
 
-// writeResponse ...
+func readRequestHeader(r io.Reader, h *header.RequestHeader) (err error) {
+	pbHeader, err := recvFrame(r)
+	if err != nil {
+		return err
+	}
+	err = proto.Unmarshal(pbHeader, h)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func readRequestBody(r io.Reader, h *header.RequestHeader, request proto.Message) error {
+	requestBody := make([]byte, h.RequestLen)
+
+	err := read(r, requestBody)
+	if err != nil {
+		return err
+	}
+
+	if h.Checksum != 0 {
+		if crc32.ChecksumIEEE(requestBody) != h.Checksum {
+			return errors.UnexpectedChecksumError
+		}
+	}
+
+	var pbRequest []byte
+	pbRequest, err = compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(requestBody)
+	if err != nil {
+		return err
+	}
+
+	if request != nil {
+		err = proto.Unmarshal(pbRequest, request)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func writeResponse(w io.Writer, id uint64, serr string,
 	compressType compressor.CompressType, response proto.Message) (err error) {
 

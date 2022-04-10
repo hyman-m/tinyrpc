@@ -11,9 +11,11 @@ import (
 	"io/ioutil"
 )
 
+// ZlibCompressor implements the compressor interface
 type ZlibCompressor struct {
 }
 
+// Zip .
 func (c ZlibCompressor) Zip(data []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 	w := zlib.NewWriter(buf)
@@ -29,6 +31,7 @@ func (c ZlibCompressor) Zip(data []byte) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
+// Unzip .
 func (c ZlibCompressor) Unzip(data []byte) ([]byte, error) {
 	r, err := zlib.NewReader(bytes.NewBuffer(data))
 	if err != nil {

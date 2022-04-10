@@ -1,3 +1,7 @@
+// Copyright 2022 <mzh.scnu@qq.com>. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package header
 
 import "sync"
@@ -16,6 +20,7 @@ func init() {
 	}}
 }
 
+// ResetHeader reset request header
 func (h *RequestHeader) ResetHeader() {
 	h.Id = 0
 	h.Checksum = 0
@@ -24,6 +29,7 @@ func (h *RequestHeader) ResetHeader() {
 	h.RequestLen = 0
 }
 
+// ResetHeader reset response header
 func (h *ResponseHeader) ResetHeader() {
 	h.Error = ""
 	h.Id = 0

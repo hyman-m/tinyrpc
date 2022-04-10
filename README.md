@@ -2,7 +2,8 @@
 
 tinyrpc is a high-performance RPC framework based on `protocol buffer` encoding. It is based on `net/rpc` and supports multiple compression formats (`gzip`, `snappy`, `zlib`).
 
-Currently only supports `Go 1.18` and above
+- Currently only supports `Go 1.18` and above
+- Unit test coverage is `76.9%`
 
 # Install
 
@@ -16,12 +17,12 @@ go install github.com/golang/protobuf/protoc-gen-go
 go install github.com/zehuamama/tinyrpc/protoc-gen-tinyrpc
 ```
 
-# Examples
+# Example
 Fisrt, create a demo:
 ```
 go mod init demo
 ```
-create a protocol buffer file:
+create a protobuf file `arith.proto`:
 ```protobuf
 syntax = "proto3";
 
@@ -116,7 +117,7 @@ func main() {
 }
 ```
 
-# Client Call
+# Client
 We can create a tinyrpc client and call it synchronously with the `Add` function:
 ```go
 conn, err := net.Dial("tcp", ":8082")

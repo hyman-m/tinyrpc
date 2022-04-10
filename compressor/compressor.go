@@ -4,6 +4,7 @@
 
 package compressor
 
+// CompressType compression types supported by tinyrpc
 type CompressType int32
 
 const (
@@ -13,6 +14,7 @@ const (
 	Zlib
 )
 
+// Compressors which supported by tinyrpc
 var Compressors = map[CompressType]Compressor{
 	Raw:    RawCompressor{},
 	Gzip:   GzipCompressor{},
@@ -20,6 +22,7 @@ var Compressors = map[CompressType]Compressor{
 	Zlib:   ZlibCompressor{},
 }
 
+// Compressor is interface, each compressor has Zip and Unzip functions
 type Compressor interface {
 	Zip([]byte) ([]byte, error)
 	Unzip([]byte) ([]byte, error)
