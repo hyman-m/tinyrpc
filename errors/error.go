@@ -10,4 +10,5 @@ var (
 	NotImplementProtoMessageError = errors.New("param does not implement proto.Message")
 	InvalidSequenceError          = errors.New("invalid sequence number in response")
 	UnexpectedChecksumError       = errors.New("unexpected checksum")
+	NotFoundCompressorError       = errors.New("not found compressor")
 )

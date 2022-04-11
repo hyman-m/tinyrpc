@@ -110,6 +110,10 @@ func writeRequest(w io.Writer, r *rpc.Request,
 		}
 	}
 
+	if _, ok := compressor.Compressors[compressType]; !ok {
+		return errs.NotFoundCompressorError
+	}
+
 	var pbRequest []byte
 	if request != nil {
 		var err error
@@ -176,6 +180,10 @@ func readResponseBody(r io.Reader, h *header.ResponseHeader, x any) error {
 		}
 	}
 
+	if _, ok := compressor.Compressors[compressor.CompressType(h.CompressType)]; !ok {
+		return errs.NotFoundCompressorError
+	}
+	
 	var resp []byte
 	resp, err = compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(pbResponse)
 	if err != nil {

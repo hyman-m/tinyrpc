@@ -14,6 +14,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/zehuamama/tinyrpc/compressor"
 	"github.com/zehuamama/tinyrpc/errors"
+	errs "github.com/zehuamama/tinyrpc/errors"
 	"github.com/zehuamama/tinyrpc/header"
 )
 
@@ -136,6 +137,10 @@ func readRequestBody(r io.Reader, h *header.RequestHeader, request proto.Message
 		}
 	}
 
+	if _, ok := compressor.Compressors[compressor.CompressType(h.CompressType)]; !ok {
+		return errs.NotFoundCompressorError
+	}
+
 	var pbRequest []byte
 	pbRequest, err = compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(requestBody)
 	if err != nil {
@@ -157,6 +162,11 @@ func writeResponse(w io.Writer, id uint64, serr string,
 	if serr != "" {
 		response = nil
 	}
+
+	if _, ok := compressor.Compressors[compressType]; !ok {
+		return errs.NotFoundCompressorError
+	}
+
 	var pbResponse []byte
 	if response != nil {
 		pbResponse, err = proto.Marshal(response)
