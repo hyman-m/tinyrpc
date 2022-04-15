@@ -197,7 +197,7 @@ func TestNewClientWithSnappyCompress(t *testing.T) {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	client := NewClientWithCompress(conn, compressor.Snappy)
+	client := NewClient(conn, WithCompress(compressor.Gzip))
 	defer client.Close()
 
 	type expect struct {
@@ -239,7 +239,7 @@ func TestNewClientWithGzipCompress(t *testing.T) {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	client := NewClientWithCompress(conn, compressor.Gzip)
+	client := NewClient(conn, WithCompress(compressor.Gzip))
 	defer client.Close()
 
 	type expect struct {
@@ -281,7 +281,7 @@ func TestNewClientWithZlibCompress(t *testing.T) {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	client := NewClientWithCompress(conn, compressor.Zlib)
+	client := NewClient(conn, WithCompress(compressor.Gzip))
 	defer client.Close()
 
 	type expect struct {

@@ -55,7 +55,7 @@ func rpcClientWithCompress() {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	client := tinyrpc.NewClientWithCompress(conn, compressor.Snappy)
+	client := tinyrpc.NewClient(conn, tinyrpc.WithCompress(compressor.Gzip))
 	defer client.Close()
 	resq := pb.ArithRequest{A: 4, B: 15}
 	resp := pb.ArithResponse{}
