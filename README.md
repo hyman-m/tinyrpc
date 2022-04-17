@@ -4,7 +4,7 @@
 
 tinyrpc is a high-performance RPC framework based on `protocol buffer` encoding. It is based on `net/rpc` and supports multiple compression formats (`gzip`, `snappy`, `zlib`).
 
-English | [中文](https://github.com/zehuamama/tinyrpc/blob/main/README_CN.md)
+Language   English | [中文](https://github.com/zehuamama/tinyrpc/blob/main/README_CN.md)
 
 # Install
 
