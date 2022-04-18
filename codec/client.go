@@ -183,7 +183,7 @@ func readResponseBody(r io.Reader, h *header.ResponseHeader, x any) error {
 	if _, ok := compressor.Compressors[compressor.CompressType(h.CompressType)]; !ok {
 		return errs.NotFoundCompressorError
 	}
-	
+
 	var resp []byte
 	resp, err = compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(pbResponse)
 	if err != nil {

@@ -5,13 +5,14 @@
 package codec
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/zehuamama/tinyrpc/compressor"
-	pb "github.com/zehuamama/tinyrpc/example/message"
 	"log"
 	"net"
 	"net/rpc"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/zehuamama/tinyrpc/compressor"
+	pb "github.com/zehuamama/tinyrpc/example/message"
 )
 
 var server *rpc.Server
