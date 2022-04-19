@@ -6,6 +6,7 @@ package serializer
 
 import (
 	"errors"
+
 	"github.com/stretchr/testify/assert"
 	pb "github.com/zehuamama/tinyrpc/example/message"
 	"testing"
@@ -46,7 +47,7 @@ func TestProtoSerializer_Marshal(t *testing.T) {
 			arg:  nil,
 			expect: expect{
 				data: []byte{},
-				err:  errors.New("proto: Marshal called with nil"),
+				err:  nil,
 			},
 		},
 	}
