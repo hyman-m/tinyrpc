@@ -6,6 +6,7 @@ package codec
 
 import (
 	"bufio"
+	"github.com/zehuamama/tinyrpc/serializer"
 	"hash/crc32"
 	"io"
 	"net/rpc"
@@ -67,12 +68,7 @@ func (s *serverCodec) ReadRequestBody(x any) error {
 		return nil
 	}
 
-	request, ok := x.(proto.Message)
-	if !ok {
-		return errors.NotImplementProtoMessageError
-	}
-
-	err := readRequestBody(s.r, &s.request, request)
+	err := readRequestBody(s.r, &s.request, x)
 	if err != nil {
 		return nil
 	}
@@ -80,20 +76,7 @@ func (s *serverCodec) ReadRequestBody(x any) error {
 }
 
 // WriteResponse Write the rpc response header and body to the io stream
-func (s *serverCodec) WriteResponse(r *rpc.Response, x any) error {
-	var response proto.Message
-	if x != nil {
-		var ok bool
-		if response, ok = x.(proto.Message); !ok {
-			if _, ok = x.(struct{}); !ok {
-				s.mutex.Lock()
-				delete(s.pending, r.Seq)
-				s.mutex.Unlock()
-				return errors.NotImplementProtoMessageError
-			}
-		}
-	}
-
+func (s *serverCodec) WriteResponse(r *rpc.Response, param any) error {
 	s.mutex.Lock()
 	id, ok := s.pending[r.Seq]
 	if !ok {
@@ -103,7 +86,7 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, x any) error {
 	delete(s.pending, r.Seq)
 	s.mutex.Unlock()
 
-	err := writeResponse(s.w, id, r.Error, compressor.CompressType(s.request.CompressType), response)
+	err := writeResponse(s.w, id, r.Error, compressor.CompressType(s.request.CompressType), param)
 	if err != nil {
 		return err
 	}
@@ -111,7 +94,7 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, x any) error {
 	return nil
 }
 
-func readRequestHeader(r io.Reader, h *header.RequestHeader) (err error) {
+func readRequestHeader(r io.Reader, h *header.RequestHeader) error {
 	pbHeader, err := recvFrame(r)
 	if err != nil {
 		return err
@@ -123,16 +106,16 @@ func readRequestHeader(r io.Reader, h *header.RequestHeader) (err error) {
 	return nil
 }
 
-func readRequestBody(r io.Reader, h *header.RequestHeader, request proto.Message) error {
-	requestBody := make([]byte, h.RequestLen)
+func readRequestBody(r io.Reader, h *header.RequestHeader, param any) error {
+	reqBody := make([]byte, h.RequestLen)
 
-	err := read(r, requestBody)
+	err := read(r, reqBody)
 	if err != nil {
 		return err
 	}
 
 	if h.Checksum != 0 {
-		if crc32.ChecksumIEEE(requestBody) != h.Checksum {
+		if crc32.ChecksumIEEE(reqBody) != h.Checksum {
 			return errors.UnexpectedChecksumError
 		}
 	}
@@ -141,43 +124,35 @@ func readRequestBody(r io.Reader, h *header.RequestHeader, request proto.Message
 		return errs.NotFoundCompressorError
 	}
 
-	var pbRequest []byte
-	pbRequest, err = compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(requestBody)
+	req, err := compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(reqBody)
 	if err != nil {
 		return err
 	}
 
-	if request != nil {
-		err = proto.Unmarshal(pbRequest, request)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return serializer.Serializers[serializer.Proto].Unmarshal(req, param)
 }
 
 func writeResponse(w io.Writer, id uint64, serr string,
-	compressType compressor.CompressType, response proto.Message) (err error) {
-
+	compressType compressor.CompressType, param any) (err error) {
 	if serr != "" {
-		response = nil
+		param = nil
 	}
-
 	if _, ok := compressor.Compressors[compressType]; !ok {
 		return errs.NotFoundCompressorError
 	}
 
-	var pbResponse []byte
-	if response != nil {
-		pbResponse, err = proto.Marshal(response)
+	var respBody []byte
+	if param != nil {
+		respBody, err = serializer.Serializers[serializer.Proto].Marshal(param)
 		if err != nil {
 			return err
 		}
 	}
 
-	var compressedPbResponse []byte
-
-	compressedPbResponse, _ = compressor.Compressors[compressType].Zip(pbResponse)
+	compressedRespBody, err := compressor.Compressors[compressType].Zip(respBody)
+	if err != nil {
+		return err
+	}
 	h := header.ResponsePool.Get().(*header.ResponseHeader)
 	defer func() {
 		h.ResetHeader()
@@ -185,8 +160,8 @@ func writeResponse(w io.Writer, id uint64, serr string,
 	}()
 	h.Id = id
 	h.Error = serr
-	h.ResponseLen = uint32(len(compressedPbResponse))
-	h.Checksum = crc32.ChecksumIEEE(compressedPbResponse)
+	h.ResponseLen = uint32(len(compressedRespBody))
+	h.Checksum = crc32.ChecksumIEEE(compressedRespBody)
 	h.CompressType = header.Compress(compressType)
 
 	pbHeader, err := proto.Marshal(h)
@@ -198,7 +173,7 @@ func writeResponse(w io.Writer, id uint64, serr string,
 		return
 	}
 
-	if err = write(w, compressedPbResponse); err != nil {
+	if err = write(w, compressedRespBody); err != nil {
 		return
 	}
 	w.(*bufio.Writer).Flush()

@@ -4,7 +4,7 @@
 
 package compressor
 
-// CompressType compression types supported by tinyrpc
+// CompressType type of compressions supported by tinyrpc
 type CompressType int32
 
 const (

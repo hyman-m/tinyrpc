@@ -6,6 +6,7 @@ package codec
 
 import (
 	"bufio"
+	"github.com/zehuamama/tinyrpc/serializer"
 	"hash/crc32"
 	"io"
 	"net/rpc"
@@ -70,8 +71,8 @@ func (c *clientCodec) ReadResponseHeader(r *rpc.Response) error {
 }
 
 // ReadResponseBody read the rpc response body from the io stream
-func (c *clientCodec) ReadResponseBody(x any) error {
-	if x == nil {
+func (c *clientCodec) ReadResponseBody(param any) error {
+	if param == nil {
 		if c.response.ResponseLen != 0 {
 			if err := read(c.r, make([]byte, c.response.ResponseLen)); err != nil {
 				return err
@@ -80,7 +81,7 @@ func (c *clientCodec) ReadResponseBody(x any) error {
 		return nil
 	}
 
-	err := readResponseBody(c.r, &c.response, x)
+	err := readResponseBody(c.r, &c.response, param)
 	if err != nil {
 		return nil
 	}
@@ -102,33 +103,17 @@ func readResponseHeader(r io.Reader, h *header.ResponseHeader) error {
 
 func writeRequest(w io.Writer, r *rpc.Request,
 	compressType compressor.CompressType, param any) error {
-	var request proto.Message
-	if param != nil {
-		var ok bool
-		if request, ok = param.(proto.Message); !ok {
-			return errs.NotImplementProtoMessageError
-		}
-	}
-
 	if _, ok := compressor.Compressors[compressType]; !ok {
 		return errs.NotFoundCompressorError
 	}
-
-	var pbRequest []byte
-	if request != nil {
-		var err error
-		pbRequest, err = proto.Marshal(request)
-		if err != nil {
-			return err
-		}
-	}
-
-	var compressedPbRequest []byte
-	compressedPbRequest, err := compressor.Compressors[compressType].Zip(pbRequest)
+	reqBody, err := serializer.Serializers[serializer.Proto].Marshal(param)
 	if err != nil {
 		return err
 	}
-
+	compressedReqBody, err := compressor.Compressors[compressType].Zip(reqBody)
+	if err != nil {
+		return err
+	}
 	h := header.RequestPool.Get().(*header.RequestHeader)
 	defer func() {
 		h.ResetHeader()
@@ -136,20 +121,18 @@ func writeRequest(w io.Writer, r *rpc.Request,
 	}()
 	h.Id = r.Seq
 	h.Method = r.ServiceMethod
-	h.RequestLen = uint32(len(compressedPbRequest))
+	h.RequestLen = uint32(len(compressedReqBody))
 	h.CompressType = header.Compress(compressType)
-	h.Checksum = crc32.ChecksumIEEE(compressedPbRequest)
+	h.Checksum = crc32.ChecksumIEEE(compressedReqBody)
 
 	pbHeader, err := proto.Marshal(h)
 	if err != err {
 		return err
 	}
-
 	if err := sendFrame(w, pbHeader); err != nil {
 		return err
 	}
-
-	if err := write(w, compressedPbRequest); err != nil {
+	if err := write(w, compressedReqBody); err != nil {
 		return err
 	}
 
@@ -157,25 +140,15 @@ func writeRequest(w io.Writer, r *rpc.Request,
 	return nil
 }
 
-func readResponseBody(r io.Reader, h *header.ResponseHeader, x any) error {
-	var response proto.Message
-	if x != nil {
-		var ok bool
-		response, ok = x.(proto.Message)
-		if !ok {
-			return errs.NotImplementProtoMessageError
-		}
-	}
-
-	pbResponse := make([]byte, h.ResponseLen)
-	err := read(r, pbResponse)
+func readResponseBody(r io.Reader, h *header.ResponseHeader, param any) error {
+	respBody := make([]byte, h.ResponseLen)
+	err := read(r, respBody)
 	if err != nil {
 		return err
 	}
 
-	// checksum
 	if h.Checksum != 0 {
-		if crc32.ChecksumIEEE(pbResponse) != h.Checksum {
+		if crc32.ChecksumIEEE(respBody) != h.Checksum {
 			return errs.UnexpectedChecksumError
 		}
 	}
@@ -184,19 +157,12 @@ func readResponseBody(r io.Reader, h *header.ResponseHeader, x any) error {
 		return errs.NotFoundCompressorError
 	}
 
-	var resp []byte
-	resp, err = compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(pbResponse)
+	resp, err := compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(respBody)
 	if err != nil {
 		return err
 	}
 
-	if response != nil {
-		err = proto.Unmarshal(resp, response)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return serializer.Serializers[serializer.Proto].Unmarshal(resp, param)
 }
 
 func (c *clientCodec) Close() error {

@@ -11,12 +11,12 @@ import (
 	"io/ioutil"
 )
 
-// GzipCompressor implements the compressor interface
+// GzipCompressor implements the Compressor interface
 type GzipCompressor struct {
 }
 
 // Zip .
-func (c GzipCompressor) Zip(data []byte) ([]byte, error) {
+func (_ GzipCompressor) Zip(data []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 	w := gzip.NewWriter(buf)
 	defer w.Close()
@@ -32,7 +32,7 @@ func (c GzipCompressor) Zip(data []byte) ([]byte, error) {
 }
 
 // Unzip .
-func (c GzipCompressor) Unzip(data []byte) ([]byte, error) {
+func (_ GzipCompressor) Unzip(data []byte) ([]byte, error) {
 	r, err := gzip.NewReader(bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err

@@ -12,12 +12,12 @@ import (
 	"github.com/golang/snappy"
 )
 
-// SnappyCompressor implements the compressor interface
+// SnappyCompressor implements the Compressor interface
 type SnappyCompressor struct {
 }
 
 // Zip .
-func (c SnappyCompressor) Zip(data []byte) ([]byte, error) {
+func (_ SnappyCompressor) Zip(data []byte) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 	w := snappy.NewBufferedWriter(buf)
 	defer func() {
@@ -32,7 +32,7 @@ func (c SnappyCompressor) Zip(data []byte) ([]byte, error) {
 }
 
 // Unzip .
-func (c SnappyCompressor) Unzip(data []byte) ([]byte, error) {
+func (_ SnappyCompressor) Unzip(data []byte) ([]byte, error) {
 	r := snappy.NewReader(bytes.NewBuffer(data))
 	data, err := ioutil.ReadAll(r)
 	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
