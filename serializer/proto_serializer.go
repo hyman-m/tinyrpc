@@ -16,11 +16,12 @@ type ProtoSerializer struct {
 // Marshal .
 func (_ ProtoSerializer) Marshal(message any) ([]byte, error) {
 	var body proto.Message
-	if message != nil {
-		var ok bool
-		if body, ok = message.(proto.Message); !ok {
-			return nil, errs.NotImplementProtoMessageError
-		}
+	if message == nil {
+		return []byte{}, nil
+	}
+	var ok bool
+	if body, ok = message.(proto.Message); !ok {
+		return nil, errs.NotImplementProtoMessageError
 	}
 	return proto.Marshal(body)
 }
@@ -28,12 +29,15 @@ func (_ ProtoSerializer) Marshal(message any) ([]byte, error) {
 // Unmarshal .
 func (_ ProtoSerializer) Unmarshal(data []byte, message any) error {
 	var body proto.Message
-	if message != nil {
-		var ok bool
-		body, ok = message.(proto.Message)
-		if !ok {
-			return errs.NotImplementProtoMessageError
-		}
+	if message == nil {
+		return nil
 	}
+
+	var ok bool
+	body, ok = message.(proto.Message)
+	if !ok {
+		return errs.NotImplementProtoMessageError
+	}
+
 	return proto.Unmarshal(data, body)
 }

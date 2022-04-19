@@ -41,6 +41,14 @@ func TestProtoSerializer_Marshal(t *testing.T) {
 				err:  errors.New("param does not implement proto.Message"),
 			},
 		},
+		{
+			name: "test-2",
+			arg:  nil,
+			expect: expect{
+				data: []byte{},
+				err:  errors.New("proto: Marshal called with nil"),
+			},
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
