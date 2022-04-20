@@ -5,7 +5,6 @@
 package tinyrpc
 
 import (
-	"log"
 	"net"
 	"net/rpc"
 
@@ -43,8 +42,7 @@ func (s *Server) Serve(lis net.Listener) {
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
-			log.Print("tinyrpc.Serve: accept:", err.Error())
-			return
+			continue
 		}
 		go s.Server.ServeCodec(codec.NewServerCodec(conn))
 	}
