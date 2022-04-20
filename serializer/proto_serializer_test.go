@@ -7,9 +7,10 @@ package serializer
 import (
 	"errors"
 
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	pb "github.com/zehuamama/tinyrpc/example/message"
-	"testing"
 )
 
 type test struct{}
@@ -43,7 +44,7 @@ func TestProtoSerializer_Marshal(t *testing.T) {
 			},
 		},
 		{
-			name: "test-2",
+			name: "test-3",
 			arg:  nil,
 			expect: expect{
 				data: []byte{},
@@ -67,33 +68,35 @@ func TestProtoSerializer_Unmarshal(t *testing.T) {
 		err     error
 	}
 	cases := []struct {
-		name   string
-		arg    []byte
-		expect expect
+		name    string
+		arg     []byte
+		message any
+		expect  expect
 	}{
 		{
 			name: "test-1",
 			arg: []byte{0x9, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xf0,
 				0x3f, 0x11, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x40},
+			message: &pb.ArithRequest{},
 			expect: expect{
 				message: &pb.ArithRequest{1, 2},
 				err:     nil,
 			},
 		},
 		{
-			name: "test-2",
-			arg:  nil,
+			name:    "test-2",
+			arg:     nil,
+			message: nil,
 			expect: expect{
-				message: &pb.ArithRequest{0, 0},
+				message: nil,
 				err:     nil,
 			},
 		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			message := &pb.ArithRequest{}
-			err := ProtoSerializer{}.Unmarshal(c.arg, message)
-			assert.Equal(t, c.expect.message, message)
+			err := ProtoSerializer{}.Unmarshal(c.arg, c.message)
+			assert.Equal(t, c.expect.message, c.message)
 			assert.Equal(t, c.expect.err, err)
 		})
 	}

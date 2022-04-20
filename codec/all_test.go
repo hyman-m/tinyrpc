@@ -5,6 +5,7 @@
 package codec
 
 import (
+	"errors"
 	"log"
 	"net"
 	"net/rpc"
@@ -104,6 +105,16 @@ func TestClient_Call(t *testing.T) {
 			expect{
 				&pb.ArithResponse{},
 				rpc.ServerError("divided is zero"),
+			},
+		},
+		{
+			client,
+			"test-6",
+			"ArithService.Div",
+			nil,
+			expect{
+				&pb.ArithResponse{},
+				errors.New("proto: Marshal called with nil"),
 			},
 		},
 	}

@@ -6,11 +6,12 @@ package codec
 
 import (
 	"bufio"
-	"github.com/zehuamama/tinyrpc/serializer"
 	"hash/crc32"
 	"io"
 	"net/rpc"
 	"sync"
+
+	"github.com/zehuamama/tinyrpc/serializer"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/zehuamama/tinyrpc/compressor"
