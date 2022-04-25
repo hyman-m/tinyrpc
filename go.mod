@@ -1,6 +1,6 @@
 module github.com/zehuamama/tinyrpc
 
-go 1.18
+go 1.17
 
 require (
 	github.com/golang/protobuf v1.5.2

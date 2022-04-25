@@ -59,7 +59,7 @@ func (s *serverCodec) ReadRequestHeader(r *rpc.Request) error {
 }
 
 // ReadRequestBody read the rpc request body from the io stream
-func (s *serverCodec) ReadRequestBody(x any) error {
+func (s *serverCodec) ReadRequestBody(x interface{}) error {
 	if x == nil {
 		if s.request.RequestLen != 0 {
 			if err := read(s.r, make([]byte, s.request.RequestLen)); err != nil {
@@ -77,7 +77,7 @@ func (s *serverCodec) ReadRequestBody(x any) error {
 }
 
 // WriteResponse Write the rpc response header and body to the io stream
-func (s *serverCodec) WriteResponse(r *rpc.Response, param any) error {
+func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 	s.mutex.Lock()
 	id, ok := s.pending[r.Seq]
 	if !ok {
@@ -107,7 +107,7 @@ func readRequestHeader(r io.Reader, h *header.RequestHeader) error {
 	return nil
 }
 
-func readRequestBody(r io.Reader, h *header.RequestHeader, param any) error {
+func readRequestBody(r io.Reader, h *header.RequestHeader, param interface{}) error {
 	reqBody := make([]byte, h.RequestLen)
 
 	err := read(r, reqBody)
@@ -134,7 +134,7 @@ func readRequestBody(r io.Reader, h *header.RequestHeader, param any) error {
 }
 
 func writeResponse(w io.Writer, id uint64, serr string,
-	compressType compressor.CompressType, param any) (err error) {
+	compressType compressor.CompressType, param interface{}) (err error) {
 	if serr != "" {
 		param = nil
 	}

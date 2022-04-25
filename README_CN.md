@@ -1,6 +1,6 @@
 # tinyrpc
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/zehuamama/tinyrpc)&nbsp;](https://goreportcard.com/report/github.com/zehuamama/tinyrpc)![GitHub top language](https://img.shields.io/github/languages/top/zehuamama/tinyrpc)&nbsp;![GitHub stars](https://img.shields.io/github/stars/zehuamama/tinyrpc)&nbsp;[![GitHub forks](https://img.shields.io/github/forks/zehuamama/tinyrpc)](https://github.com/zehuamama/tinyrpc/network)&nbsp;![GitHub](https://img.shields.io/github/license/zehuamama/tinyrpc)&nbsp;[![codecov](https://codecov.io/gh/zehuamama/tinyrpc/branch/main/graph/badge.svg)](https://codecov.io/gh/zehuamama/tinyrpc)&nbsp;![go_version](https://img.shields.io/badge/Go%20Version-1.18-red)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zehuamama/tinyrpc)&nbsp;](https://goreportcard.com/report/github.com/zehuamama/tinyrpc)![GitHub top language](https://img.shields.io/github/languages/top/zehuamama/tinyrpc)&nbsp;![GitHub stars](https://img.shields.io/github/stars/zehuamama/tinyrpc)&nbsp;[![GitHub forks](https://img.shields.io/github/forks/zehuamama/tinyrpc)](https://github.com/zehuamama/tinyrpc/network)&nbsp;![GitHub](https://img.shields.io/github/license/zehuamama/tinyrpc)&nbsp;[![codecov](https://codecov.io/gh/zehuamama/tinyrpc/branch/main/graph/badge.svg)](https://codecov.io/gh/zehuamama/tinyrpc)&nbsp;![go_version](https://img.shields.io/badge/go%20version-1.17-yellow)
 
 
 tinyrpc 是基于 protocol buffer 协议的高性能RPC框架. 它基于标准库 `net/rpc` 扩展而来，并且支持多种压缩格式 (`gzip`, `snappy`, `zlib`)。

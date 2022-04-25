@@ -22,7 +22,7 @@ func NewServer() *Server {
 }
 
 // Register register rpc function
-func (s *Server) Register(rcvr ...any) error {
+func (s *Server) Register(rcvr ...interface{}) error {
 	for r := range rcvr {
 		err := s.Server.Register(r)
 		if err != nil {
@@ -33,7 +33,7 @@ func (s *Server) Register(rcvr ...any) error {
 }
 
 // RegisterName register the rpc function with the specified name
-func (s *Server) RegisterName(name string, rcvr any) error {
+func (s *Server) RegisterName(name string, rcvr interface{}) error {
 	return s.Server.RegisterName(name, rcvr)
 }
 

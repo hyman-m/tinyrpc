@@ -23,7 +23,7 @@ func TestProtoSerializer_Marshal(t *testing.T) {
 	}
 	cases := []struct {
 		name   string
-		arg    any
+		arg    interface{}
 		expect expect
 	}{
 		{
@@ -64,13 +64,13 @@ func TestProtoSerializer_Marshal(t *testing.T) {
 // TestProtoSerializer_Unmarshal .
 func TestProtoSerializer_Unmarshal(t *testing.T) {
 	type expect struct {
-		message any
+		message interface{}
 		err     error
 	}
 	cases := []struct {
 		name    string
 		arg     []byte
-		message any
+		message interface{}
 		expect  expect
 	}{
 		{

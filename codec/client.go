@@ -44,7 +44,7 @@ func NewClientCodec(conn io.ReadWriteCloser,
 }
 
 // WriteRequest Write the rpc request header and body to the io stream
-func (c *clientCodec) WriteRequest(r *rpc.Request, param any) error {
+func (c *clientCodec) WriteRequest(r *rpc.Request, param interface{}) error {
 	c.mutex.Lock()
 	c.pending[r.Seq] = r.ServiceMethod
 	c.mutex.Unlock()
@@ -72,7 +72,7 @@ func (c *clientCodec) ReadResponseHeader(r *rpc.Response) error {
 }
 
 // ReadResponseBody read the rpc response body from the io stream
-func (c *clientCodec) ReadResponseBody(param any) error {
+func (c *clientCodec) ReadResponseBody(param interface{}) error {
 	if param == nil {
 		if c.response.ResponseLen != 0 {
 			if err := read(c.r, make([]byte, c.response.ResponseLen)); err != nil {
@@ -103,7 +103,7 @@ func readResponseHeader(r io.Reader, h *header.ResponseHeader) error {
 }
 
 func writeRequest(w io.Writer, r *rpc.Request,
-	compressType compressor.CompressType, param any) error {
+	compressType compressor.CompressType, param interface{}) error {
 	if _, ok := compressor.Compressors[compressType]; !ok {
 		return errs.NotFoundCompressorError
 	}
@@ -141,7 +141,7 @@ func writeRequest(w io.Writer, r *rpc.Request,
 	return nil
 }
 
-func readResponseBody(r io.Reader, h *header.ResponseHeader, param any) error {
+func readResponseBody(r io.Reader, h *header.ResponseHeader, param interface{}) error {
 	respBody := make([]byte, h.ResponseLen)
 	err := read(r, respBody)
 	if err != nil {
