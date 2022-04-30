@@ -162,5 +162,5 @@ If you are intersted in contributing to tinyrpc, please see here: [CONTRIBUTING]
 
 ## License
 
-rosedb is licensed under the term of the [BSD 2-Clause License](https://github.com/zehuamama/tinyrpc/blob/main/LICENSE)
+tinyrpc is licensed under the term of the [BSD 2-Clause License](https://github.com/zehuamama/tinyrpc/blob/main/LICENSE)
 
