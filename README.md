@@ -6,7 +6,7 @@ tinyrpc is a high-performance RPC framework based on `protocol buffer` encoding.
 
 Language&nbsp;&nbsp;English | [中文](https://github.com/zehuamama/tinyrpc/blob/main/README_CN.md)
 
-# Install
+## Install
 
 
 - install `protoc` at first :http://github.com/google/protobuf/releases
@@ -18,12 +18,13 @@ go install github.com/golang/protobuf/protoc-gen-go
 go install github.com/zehuamama/tinyrpc/protoc-gen-tinyrpc
 ```
 
-# Example
-Fisrt, create a demo:
+## Quick Start
+Fisrt, create a demo and import the tinyrpc package:
+```shell
+> go mod init demo
+> go get github.com/zehuamama/tinyrpc
 ```
-go mod init demo
-```
-create a protobuf file `arith.proto`:
+Under the path of the project, create a protobuf file `arith.proto`:
 ```protobuf
 syntax = "proto3";
 
@@ -52,8 +53,8 @@ message ArithResponse {
 }
 ```
 an arithmetic operation service is defined here, using `protoc` to generate code:
-```
-protoc --tinyrpc_out=. arith.proto --go_out=. arith.proto
+```shell
+> protoc --tinyrpc_out=. arith.proto --go_out=. arith.proto
 ```
 at this time, two files will be generated in the directory `message`: `arith.pb.go` and `arith.svr.go`
 
@@ -90,11 +91,9 @@ func (this *ArithService) Div(args *ArithRequest, reply *ArithResponse) error {
 	return nil
 }
 ```
-We can define our services. 
+We need define our services. 
 
-# Server
-
-Then create a tinyrpc server, the code is as follows:
+Finally, under the path of the project, we create a file named `main.go`, the code is as follows:
 ```go
 package main
 
@@ -117,10 +116,16 @@ func main() {
 	server.Serve(lis)
 }
 ```
+A tinyrpc server is completed.
 
-# Client
+## Client
 We can create a tinyrpc client and call it synchronously with the `Add` function:
 ```go
+import (
+        "demo/message"
+	"github.com/zehuamama/tinyrpc"
+...
+
 conn, err := net.Dial("tcp", ":8082")
 if err != nil {
 	log.Fatal(err)
@@ -130,6 +135,7 @@ client := tinyrpc.NewClient(conn)
 resq := message.ArithRequest{A: 20, B: 5}
 resp := message.ArithResponse{}
 err = client.Call("ArithService.Add", &resq, &resp)
+log.Printf("Arith.Add(%v, %v): %v ,Error: %v", resq.A, resq.B, resp.C, err)
 ```
 you can also call asynchronously, which will return *rpc.Call:
 ```go
@@ -146,9 +152,7 @@ of course, you can also compress the encoding, tinyrpc currently supports `gzip`
 ```go
 import "github.com/zehuamama/tinyrpc/compressor"
 
-// ...
+...
 client := tinyrpc.NewClient(conn, tinyrpc.WithCompress(compressor.Gzip))
-resq := message.ArithRequest{A: 4, B: 15}
-resp := message.ArithResponse{}
-err = client.Call("ArithService.Mul", &resq, &resp)
+
 ```
