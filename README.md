@@ -4,7 +4,7 @@
 
 tinyrpc is a high-performance RPC framework based on `protocol buffer` encoding. It is based on `net/rpc` and supports multiple compression formats (`gzip`, `snappy`, `zlib`).
 
-Language&nbsp;&nbsp;English | [中文](https://github.com/zehuamama/tinyrpc/blob/main/README_CN.md)
+Language&nbsp;&nbsp;English
 
 ## Install
 
@@ -137,7 +137,7 @@ resp := message.ArithResponse{}
 err = client.Call("ArithService.Add", &resq, &resp)
 log.Printf("Arith.Add(%v, %v): %v ,Error: %v", resq.A, resq.B, resp.C, err)
 ```
-you can also call asynchronously, which will return *rpc.Call:
+you can also call asynchronously, which will return a channel of type *rpc.Call:
 ```go
 
 result := client.AsyncCall("ArithService.Add", &resq, &resp)
@@ -156,3 +156,11 @@ import "github.com/zehuamama/tinyrpc/compressor"
 client := tinyrpc.NewClient(conn, tinyrpc.WithCompress(compressor.Gzip))
 
 ```
+## Contributing
+
+If you are intersted in contributing to tinyrpc, please see here: [CONTRIBUTING](https://github.com/zehuamama/tinyrpc/blob/main/CONTRIBUTING.md)
+
+## License
+
+rosedb is licensed under the term of the [BSD 2-Clause License](https://github.com/zehuamama/tinyrpc/blob/main/LICENSE)
+
