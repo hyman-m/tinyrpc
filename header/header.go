@@ -2,6 +2,7 @@ package header
 
 import (
 	"encoding/binary"
+	"log"
 )
 
 const (
@@ -10,8 +11,10 @@ const (
 	Uint16Size    = 2
 )
 
+// Compress .
 type Compress uint16
 
+// RequestHeader .
 type RequestHeader struct {
 	CompressType Compress
 	Method       string
@@ -20,6 +23,7 @@ type RequestHeader struct {
 	Checksum     uint32
 }
 
+// Marshal .
 func (r *RequestHeader) Marshal() []byte {
 	header := make([]byte, MaxHeaderSize+len(r.Method)) // prevent panic
 	idx := 0
@@ -35,7 +39,13 @@ func (r *RequestHeader) Marshal() []byte {
 	return header[:idx]
 }
 
+// Unmarshal .
 func (r *RequestHeader) Unmarshal(data []byte) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+		}
+	}()
 	idx, size := 0, 0
 	r.CompressType = Compress(binary.LittleEndian.Uint16(data[idx:]))
 	idx += Uint16Size
@@ -61,6 +71,7 @@ func (r *RequestHeader) ResetHeader() {
 	r.RequestLen = 0
 }
 
+// ResponseHeader .
 type ResponseHeader struct {
 	CompressType Compress
 	ID           uint64
@@ -69,6 +80,7 @@ type ResponseHeader struct {
 	Checksum     uint32
 }
 
+// Marshal .
 func (r *ResponseHeader) Marshal() []byte {
 	header := make([]byte, MaxHeaderSize+len(r.Error)) // prevent panic
 	idx := 0
@@ -84,7 +96,13 @@ func (r *ResponseHeader) Marshal() []byte {
 	return header[:idx]
 }
 
+// Unmarshal .
 func (r *ResponseHeader) Unmarshal(data []byte) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println(r)
+		}
+	}()
 	idx, size := 0, 0
 	r.CompressType = Compress(binary.LittleEndian.Uint16(data[idx:]))
 	idx += Uint16Size
