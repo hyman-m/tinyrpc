@@ -11,7 +11,6 @@ import (
 	"net/rpc"
 	"sync"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/zehuamama/tinyrpc/compressor"
 	errs "github.com/zehuamama/tinyrpc/errors"
 	"github.com/zehuamama/tinyrpc/header"
@@ -49,7 +48,7 @@ func (s *serverCodec) ReadRequestHeader(r *rpc.Request) error {
 	}
 	s.mutex.Lock()
 	s.seq++
-	s.pending[s.seq] = s.request.Id
+	s.pending[s.seq] = s.request.ID
 	r.ServiceMethod = s.request.Method
 	r.Seq = s.seq
 	s.mutex.Unlock()
@@ -94,14 +93,11 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 }
 
 func readRequestHeader(r io.Reader, h *header.RequestHeader) error {
-	pbHeader, err := recvFrame(r)
+	data, err := recvFrame(r)
 	if err != nil {
 		return err
 	}
-	err = proto.Unmarshal(pbHeader, h)
-	if err != nil {
-		return err
-	}
+	h.Unmarshal(data)
 	return nil
 }
 
@@ -157,18 +153,13 @@ func writeResponse(w io.Writer, id uint64, serr string,
 		h.ResetHeader()
 		header.ResponsePool.Put(h)
 	}()
-	h.Id = id
+	h.ID = id
 	h.Error = serr
 	h.ResponseLen = uint32(len(compressedRespBody))
 	h.Checksum = crc32.ChecksumIEEE(compressedRespBody)
 	h.CompressType = header.Compress(compressType)
 
-	pbHeader, err := proto.Marshal(h)
-	if err != err {
-		return
-	}
-
-	if err = sendFrame(w, pbHeader); err != nil {
+	if err = sendFrame(w, h.Marshal()); err != nil {
 		return
 	}
 
