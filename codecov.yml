@@ -4,7 +4,7 @@ codecov:
 coverage:
   precision: 2
   round: up
-  range: "50...100"
+  range: "10...100"
 
 parsers:
   gcov:
