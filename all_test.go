@@ -1,6 +1,7 @@
 package tinyrpc
 
 import (
+	"errors"
 	"log"
 	"net"
 	"net/rpc"
@@ -8,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zehuamama/tinyrpc/compressor"
-	pb "github.com/zehuamama/tinyrpc/example/message"
+	pb "github.com/zehuamama/tinyrpc/test.pb/message"
 )
 
 var server Server
@@ -314,4 +315,12 @@ func TestNewClientWithZlibCompress(t *testing.T) {
 			assert.Equal(t, c.expect.err, err)
 		})
 	}
+}
+
+// TestServer_Register .
+func TestServer_Register(t *testing.T) {
+	server := NewServer()
+	server.RegisterName("ArithService", new(pb.ArithService))
+	err := server.Register(new(pb.ArithService))
+	assert.Equal(t, errors.New("rpc.Register: type int is not exported"), err)
 }

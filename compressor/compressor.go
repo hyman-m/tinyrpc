@@ -4,7 +4,7 @@
 
 package compressor
 
-// CompressType type of compressions supported by tinyrpc
+// CompressType type of compressions supported by rpc
 type CompressType int32
 
 const (
@@ -14,7 +14,7 @@ const (
 	Zlib
 )
 
-// Compressors which supported by tinyrpc
+// Compressors which supported by rpc
 var Compressors = map[CompressType]Compressor{
 	Raw:    RawCompressor{},
 	Gzip:   GzipCompressor{},

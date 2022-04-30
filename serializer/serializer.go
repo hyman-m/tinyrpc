@@ -4,14 +4,14 @@
 
 package serializer
 
-// SerializeType serialized type supported by tinyrpc
+// SerializeType serialized type supported by rpc
 type SerializeType int32
 
 const (
 	Proto SerializeType = iota
 )
 
-// Serializers which supported by tinyrpc
+// Serializers which supported by rpc
 var Serializers = map[SerializeType]Serializer{
 	Proto: ProtoSerializer{},
 }
