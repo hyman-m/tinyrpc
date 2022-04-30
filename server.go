@@ -11,12 +11,12 @@ import (
 	"github.com/zehuamama/tinyrpc/codec"
 )
 
-// Server tinyrpc server based on net/rpc implementation
+// Server rpc server based on net/rpc implementation
 type Server struct {
 	*rpc.Server
 }
 
-// NewServer Create a new tinyrpc server
+// NewServer Create a new rpc server
 func NewServer() *Server {
 	return &Server{&rpc.Server{}}
 }

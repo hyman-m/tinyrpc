@@ -11,13 +11,11 @@ import (
 	"net/rpc"
 	"sync"
 
-	"github.com/zehuamama/tinyrpc/serializer"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/zehuamama/tinyrpc/compressor"
-	"github.com/zehuamama/tinyrpc/errors"
 	errs "github.com/zehuamama/tinyrpc/errors"
 	"github.com/zehuamama/tinyrpc/header"
+	"github.com/zehuamama/tinyrpc/serializer"
 )
 
 type serverCodec struct {
@@ -82,7 +80,7 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 	id, ok := s.pending[r.Seq]
 	if !ok {
 		s.mutex.Unlock()
-		return errors.InvalidSequenceError
+		return errs.InvalidSequenceError
 	}
 	delete(s.pending, r.Seq)
 	s.mutex.Unlock()
@@ -117,7 +115,7 @@ func readRequestBody(r io.Reader, h *header.RequestHeader, param interface{}) er
 
 	if h.Checksum != 0 {
 		if crc32.ChecksumIEEE(reqBody) != h.Checksum {
-			return errors.UnexpectedChecksumError
+			return errs.UnexpectedChecksumError
 		}
 	}
 

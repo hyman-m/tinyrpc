@@ -11,12 +11,11 @@ import (
 	"net/rpc"
 	"sync"
 
-	"github.com/zehuamama/tinyrpc/serializer"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/zehuamama/tinyrpc/compressor"
 	errs "github.com/zehuamama/tinyrpc/errors"
 	"github.com/zehuamama/tinyrpc/header"
+	"github.com/zehuamama/tinyrpc/serializer"
 )
 
 type clientCodec struct {
