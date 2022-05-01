@@ -54,6 +54,12 @@ func TestRequestHeader_Unmarshal(t *testing.T) {
 			expect{&RequestHeader{},
 				UnmarshalError},
 		},
+		{
+			"test-3",
+			[]byte{0x0},
+			expect{&RequestHeader{},
+				UnmarshalError},
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -118,6 +124,12 @@ func TestResponseHeader_Unmarshal(t *testing.T) {
 		{
 			"test-2",
 			nil,
+			expect{&ResponseHeader{},
+				UnmarshalError},
+		},
+		{
+			"test-3",
+			[]byte{0x0},
 			expect{&ResponseHeader{},
 				UnmarshalError},
 		},
