@@ -11,9 +11,7 @@ import (
 	"net/rpc"
 	"sync"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/zehuamama/tinyrpc/compressor"
-	errs "github.com/zehuamama/tinyrpc/errors"
 	"github.com/zehuamama/tinyrpc/header"
 	"github.com/zehuamama/tinyrpc/serializer"
 )
@@ -49,7 +47,7 @@ func (s *serverCodec) ReadRequestHeader(r *rpc.Request) error {
 	}
 	s.mutex.Lock()
 	s.seq++
-	s.pending[s.seq] = s.request.Id
+	s.pending[s.seq] = s.request.ID
 	r.ServiceMethod = s.request.Method
 	r.Seq = s.seq
 	s.mutex.Unlock()
@@ -80,7 +78,7 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 	id, ok := s.pending[r.Seq]
 	if !ok {
 		s.mutex.Unlock()
-		return errs.InvalidSequenceError
+		return InvalidSequenceError
 	}
 	delete(s.pending, r.Seq)
 	s.mutex.Unlock()
@@ -94,15 +92,11 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 }
 
 func readRequestHeader(r io.Reader, h *header.RequestHeader) error {
-	pbHeader, err := recvFrame(r)
+	data, err := recvFrame(r)
 	if err != nil {
 		return err
 	}
-	err = proto.Unmarshal(pbHeader, h)
-	if err != nil {
-		return err
-	}
-	return nil
+	return h.Unmarshal(data)
 }
 
 func readRequestBody(r io.Reader, h *header.RequestHeader, param interface{}) error {
@@ -115,12 +109,12 @@ func readRequestBody(r io.Reader, h *header.RequestHeader, param interface{}) er
 
 	if h.Checksum != 0 {
 		if crc32.ChecksumIEEE(reqBody) != h.Checksum {
-			return errs.UnexpectedChecksumError
+			return UnexpectedChecksumError
 		}
 	}
 
 	if _, ok := compressor.Compressors[compressor.CompressType(h.CompressType)]; !ok {
-		return errs.NotFoundCompressorError
+		return NotFoundCompressorError
 	}
 
 	req, err := compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(reqBody)
@@ -137,7 +131,7 @@ func writeResponse(w io.Writer, id uint64, serr string,
 		param = nil
 	}
 	if _, ok := compressor.Compressors[compressType]; !ok {
-		return errs.NotFoundCompressorError
+		return NotFoundCompressorError
 	}
 
 	var respBody []byte
@@ -157,18 +151,13 @@ func writeResponse(w io.Writer, id uint64, serr string,
 		h.ResetHeader()
 		header.ResponsePool.Put(h)
 	}()
-	h.Id = id
+	h.ID = id
 	h.Error = serr
 	h.ResponseLen = uint32(len(compressedRespBody))
 	h.Checksum = crc32.ChecksumIEEE(compressedRespBody)
-	h.CompressType = header.Compress(compressType)
+	h.CompressType = header.CompressType(compressType)
 
-	pbHeader, err := proto.Marshal(h)
-	if err != err {
-		return
-	}
-
-	if err = sendFrame(w, pbHeader); err != nil {
+	if err = sendFrame(w, h.Marshal()); err != nil {
 		return
 	}
 

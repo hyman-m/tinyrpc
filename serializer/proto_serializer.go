@@ -5,9 +5,12 @@
 package serializer
 
 import (
+	"errors"
+
 	"github.com/golang/protobuf/proto"
-	errs "github.com/zehuamama/tinyrpc/errors"
 )
+
+var NotImplementProtoMessageError = errors.New("param does not implement proto.Message")
 
 // ProtoSerializer implements the Serializer interface
 type ProtoSerializer struct {
@@ -21,7 +24,7 @@ func (_ ProtoSerializer) Marshal(message interface{}) ([]byte, error) {
 	}
 	var ok bool
 	if body, ok = message.(proto.Message); !ok {
-		return nil, errs.NotImplementProtoMessageError
+		return nil, NotImplementProtoMessageError
 	}
 	return proto.Marshal(body)
 }
@@ -36,7 +39,7 @@ func (_ ProtoSerializer) Unmarshal(data []byte, message interface{}) error {
 	var ok bool
 	body, ok = message.(proto.Message)
 	if !ok {
-		return errs.NotImplementProtoMessageError
+		return NotImplementProtoMessageError
 	}
 
 	return proto.Unmarshal(data, body)

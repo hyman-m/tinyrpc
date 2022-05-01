@@ -11,9 +11,7 @@ import (
 	"net/rpc"
 	"sync"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/zehuamama/tinyrpc/compressor"
-	errs "github.com/zehuamama/tinyrpc/errors"
 	"github.com/zehuamama/tinyrpc/header"
 	"github.com/zehuamama/tinyrpc/serializer"
 )
@@ -62,7 +60,7 @@ func (c *clientCodec) ReadResponseHeader(r *rpc.Response) error {
 		return err
 	}
 	c.mutex.Lock()
-	r.Seq = c.response.Id
+	r.Seq = c.response.ID
 	r.Error = c.response.Error
 	r.ServiceMethod = c.pending[r.Seq]
 	delete(c.pending, r.Seq)
@@ -88,23 +86,18 @@ func (c *clientCodec) ReadResponseBody(param interface{}) error {
 	return nil
 }
 
-// readResponseHeader ...
 func readResponseHeader(r io.Reader, h *header.ResponseHeader) error {
-	pbHeader, err := recvFrame(r)
+	data, err := recvFrame(r)
 	if err != nil {
 		return err
 	}
-	err = proto.Unmarshal(pbHeader, h)
-	if err != nil {
-		return err
-	}
-	return nil
+	return h.Unmarshal(data)
 }
 
 func writeRequest(w io.Writer, r *rpc.Request,
 	compressType compressor.CompressType, param interface{}) error {
 	if _, ok := compressor.Compressors[compressType]; !ok {
-		return errs.NotFoundCompressorError
+		return NotFoundCompressorError
 	}
 	reqBody, err := serializer.Serializers[serializer.Proto].Marshal(param)
 	if err != nil {
@@ -119,17 +112,13 @@ func writeRequest(w io.Writer, r *rpc.Request,
 		h.ResetHeader()
 		header.RequestPool.Put(h)
 	}()
-	h.Id = r.Seq
+	h.ID = r.Seq
 	h.Method = r.ServiceMethod
 	h.RequestLen = uint32(len(compressedReqBody))
-	h.CompressType = header.Compress(compressType)
+	h.CompressType = header.CompressType(compressType)
 	h.Checksum = crc32.ChecksumIEEE(compressedReqBody)
 
-	pbHeader, err := proto.Marshal(h)
-	if err != err {
-		return err
-	}
-	if err := sendFrame(w, pbHeader); err != nil {
+	if err := sendFrame(w, h.Marshal()); err != nil {
 		return err
 	}
 	if err := write(w, compressedReqBody); err != nil {
@@ -149,12 +138,12 @@ func readResponseBody(r io.Reader, h *header.ResponseHeader, param interface{}) 
 
 	if h.Checksum != 0 {
 		if crc32.ChecksumIEEE(respBody) != h.Checksum {
-			return errs.UnexpectedChecksumError
+			return UnexpectedChecksumError
 		}
 	}
 
 	if _, ok := compressor.Compressors[compressor.CompressType(h.CompressType)]; !ok {
-		return errs.NotFoundCompressorError
+		return NotFoundCompressorError
 	}
 
 	resp, err := compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(respBody)
