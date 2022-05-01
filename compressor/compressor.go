@@ -5,7 +5,7 @@
 package compressor
 
 // CompressType type of compressions supported by rpc
-type CompressType int32
+type CompressType uint16
 
 const (
 	Raw CompressType = iota

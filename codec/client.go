@@ -12,7 +12,6 @@ import (
 	"sync"
 
 	"github.com/zehuamama/tinyrpc/compressor"
-	errs "github.com/zehuamama/tinyrpc/errors"
 	"github.com/zehuamama/tinyrpc/header"
 	"github.com/zehuamama/tinyrpc/serializer"
 )
@@ -87,20 +86,18 @@ func (c *clientCodec) ReadResponseBody(param interface{}) error {
 	return nil
 }
 
-// readResponseHeader ...
 func readResponseHeader(r io.Reader, h *header.ResponseHeader) error {
 	data, err := recvFrame(r)
 	if err != nil {
 		return err
 	}
-	h.Unmarshal(data)
-	return nil
+	return h.Unmarshal(data)
 }
 
 func writeRequest(w io.Writer, r *rpc.Request,
 	compressType compressor.CompressType, param interface{}) error {
 	if _, ok := compressor.Compressors[compressType]; !ok {
-		return errs.NotFoundCompressorError
+		return NotFoundCompressorError
 	}
 	reqBody, err := serializer.Serializers[serializer.Proto].Marshal(param)
 	if err != nil {
@@ -118,7 +115,7 @@ func writeRequest(w io.Writer, r *rpc.Request,
 	h.ID = r.Seq
 	h.Method = r.ServiceMethod
 	h.RequestLen = uint32(len(compressedReqBody))
-	h.CompressType = header.Compress(compressType)
+	h.CompressType = header.CompressType(compressType)
 	h.Checksum = crc32.ChecksumIEEE(compressedReqBody)
 
 	if err := sendFrame(w, h.Marshal()); err != nil {
@@ -141,12 +138,12 @@ func readResponseBody(r io.Reader, h *header.ResponseHeader, param interface{}) 
 
 	if h.Checksum != 0 {
 		if crc32.ChecksumIEEE(respBody) != h.Checksum {
-			return errs.UnexpectedChecksumError
+			return UnexpectedChecksumError
 		}
 	}
 
 	if _, ok := compressor.Compressors[compressor.CompressType(h.CompressType)]; !ok {
-		return errs.NotFoundCompressorError
+		return NotFoundCompressorError
 	}
 
 	resp, err := compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(respBody)
