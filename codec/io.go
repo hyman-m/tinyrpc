@@ -5,7 +5,6 @@
 package codec
 
 import (
-	"bufio"
 	"encoding/binary"
 	"io"
 	"net"
@@ -33,7 +32,7 @@ func sendFrame(w io.Writer, data []byte) (err error) {
 }
 
 func recvFrame(r io.Reader) (data []byte, err error) {
-	size, err := binary.ReadUvarint(r.(*bufio.Reader))
+	size, err := binary.ReadUvarint(r.(io.ByteReader))
 	if err != nil {
 		return nil, err
 	}

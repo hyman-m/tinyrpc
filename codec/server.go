@@ -95,10 +95,6 @@ func (s *serverCodec) ReadRequestBody(param interface{}) error {
 	}
 
 	return s.serializer.Unmarshal(req, param)
-	if err != nil {
-		return nil
-	}
-	return nil
 }
 
 // WriteResponse Write the rpc response header and body to the io stream

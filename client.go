@@ -18,7 +18,7 @@ type Client struct {
 	*rpc.Client
 }
 
-//Option provides options for rpc client
+//Option provides options for rpc
 type Option func(o *options)
 
 type options struct {
