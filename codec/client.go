@@ -22,20 +22,22 @@ type clientCodec struct {
 	c io.Closer
 
 	compressor compressor.CompressType // rpc compress type(raw,gzip,snappy,zlib)
-	response   header.ResponseHeader   // rpc response header
-	mutex      sync.Mutex              // protect pending map
+	serializer serializer.Serializer
+	response   header.ResponseHeader // rpc response header
+	mutex      sync.Mutex            // protect pending map
 	pending    map[uint64]string
 }
 
 // NewClientCodec Create a new client codec
 func NewClientCodec(conn io.ReadWriteCloser,
-	compressType compressor.CompressType) rpc.ClientCodec {
+	compressType compressor.CompressType, serializer serializer.Serializer) rpc.ClientCodec {
 
 	return &clientCodec{
 		r:          bufio.NewReader(conn),
 		w:          bufio.NewWriter(conn),
 		c:          conn,
 		compressor: compressType,
+		serializer: serializer,
 		pending:    make(map[uint64]string),
 	}
 }
@@ -45,17 +47,48 @@ func (c *clientCodec) WriteRequest(r *rpc.Request, param interface{}) error {
 	c.mutex.Lock()
 	c.pending[r.Seq] = r.ServiceMethod
 	c.mutex.Unlock()
-	err := writeRequest(c.w, r, c.compressor, param)
+
+	if _, ok := compressor.Compressors[c.compressor]; !ok {
+		return NotFoundCompressorError
+	}
+	reqBody, err := c.serializer.Marshal(param)
 	if err != nil {
 		return err
 	}
+	compressedReqBody, err := compressor.Compressors[c.compressor].Zip(reqBody)
+	if err != nil {
+		return err
+	}
+	h := header.RequestPool.Get().(*header.RequestHeader)
+	defer func() {
+		h.ResetHeader()
+		header.RequestPool.Put(h)
+	}()
+	h.ID = r.Seq
+	h.Method = r.ServiceMethod
+	h.RequestLen = uint32(len(compressedReqBody))
+	h.CompressType = header.CompressType(c.compressor)
+	h.Checksum = crc32.ChecksumIEEE(compressedReqBody)
+
+	if err := sendFrame(c.w, h.Marshal()); err != nil {
+		return err
+	}
+	if err := write(c.w, compressedReqBody); err != nil {
+		return err
+	}
+
+	c.w.(*bufio.Writer).Flush()
 	return nil
 }
 
 // ReadResponseHeader read the rpc response header from the io stream
 func (c *clientCodec) ReadResponseHeader(r *rpc.Response) error {
 	c.response.ResetHeader()
-	err := readResponseHeader(c.r, &c.response)
+	data, err := recvFrame(c.r)
+	if err != nil {
+		return err
+	}
+	err = c.response.Unmarshal(data)
 	if err != nil {
 		return err
 	}
@@ -79,79 +112,28 @@ func (c *clientCodec) ReadResponseBody(param interface{}) error {
 		return nil
 	}
 
-	err := readResponseBody(c.r, &c.response, param)
-	if err != nil {
-		return nil
-	}
-	return nil
-}
-
-func readResponseHeader(r io.Reader, h *header.ResponseHeader) error {
-	data, err := recvFrame(r)
-	if err != nil {
-		return err
-	}
-	return h.Unmarshal(data)
-}
-
-func writeRequest(w io.Writer, r *rpc.Request,
-	compressType compressor.CompressType, param interface{}) error {
-	if _, ok := compressor.Compressors[compressType]; !ok {
-		return NotFoundCompressorError
-	}
-	reqBody, err := serializer.Serializers[serializer.Proto].Marshal(param)
-	if err != nil {
-		return err
-	}
-	compressedReqBody, err := compressor.Compressors[compressType].Zip(reqBody)
-	if err != nil {
-		return err
-	}
-	h := header.RequestPool.Get().(*header.RequestHeader)
-	defer func() {
-		h.ResetHeader()
-		header.RequestPool.Put(h)
-	}()
-	h.ID = r.Seq
-	h.Method = r.ServiceMethod
-	h.RequestLen = uint32(len(compressedReqBody))
-	h.CompressType = header.CompressType(compressType)
-	h.Checksum = crc32.ChecksumIEEE(compressedReqBody)
-
-	if err := sendFrame(w, h.Marshal()); err != nil {
-		return err
-	}
-	if err := write(w, compressedReqBody); err != nil {
-		return err
-	}
-
-	w.(*bufio.Writer).Flush()
-	return nil
-}
-
-func readResponseBody(r io.Reader, h *header.ResponseHeader, param interface{}) error {
-	respBody := make([]byte, h.ResponseLen)
-	err := read(r, respBody)
+	respBody := make([]byte, c.response.ResponseLen)
+	err := read(c.r, respBody)
 	if err != nil {
 		return err
 	}
 
-	if h.Checksum != 0 {
-		if crc32.ChecksumIEEE(respBody) != h.Checksum {
+	if c.response.Checksum != 0 {
+		if crc32.ChecksumIEEE(respBody) != c.response.Checksum {
 			return UnexpectedChecksumError
 		}
 	}
 
-	if _, ok := compressor.Compressors[compressor.CompressType(h.CompressType)]; !ok {
+	if _, ok := compressor.Compressors[compressor.CompressType(c.response.CompressType)]; !ok {
 		return NotFoundCompressorError
 	}
 
-	resp, err := compressor.Compressors[compressor.CompressType(h.CompressType)].Unzip(respBody)
+	resp, err := compressor.Compressors[compressor.CompressType(c.response.CompressType)].Unzip(respBody)
 	if err != nil {
 		return err
 	}
 
-	return serializer.Serializers[serializer.Proto].Unmarshal(resp, param)
+	return c.serializer.Unmarshal(resp, param)
 }
 
 func (c *clientCodec) Close() error {

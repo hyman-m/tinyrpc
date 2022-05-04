@@ -9,16 +9,25 @@ import (
 	"net/rpc"
 
 	"github.com/zehuamama/tinyrpc/codec"
+	"github.com/zehuamama/tinyrpc/serializer"
 )
 
 // Server rpc server based on net/rpc implementation
 type Server struct {
 	*rpc.Server
+	serializer.Serializer
 }
 
 // NewServer Create a new rpc server
-func NewServer() *Server {
-	return &Server{&rpc.Server{}}
+func NewServer(opts ...Option) *Server {
+	options := options{
+		serializer: serializer.Proto,
+	}
+	for _, option := range opts {
+		option(&options)
+	}
+
+	return &Server{&rpc.Server{}, options.serializer}
 }
 
 // Register register rpc function
@@ -44,6 +53,6 @@ func (s *Server) Serve(lis net.Listener) {
 		if err != nil {
 			continue
 		}
-		go s.Server.ServeCodec(codec.NewServerCodec(conn))
+		go s.Server.ServeCodec(codec.NewServerCodec(conn, s.Serializer))
 	}
 }

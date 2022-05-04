@@ -4,18 +4,6 @@
 
 package serializer
 
-// SerializeType serialized type supported by rpc
-type SerializeType int32
-
-const (
-	Proto SerializeType = iota
-)
-
-// Serializers which supported by rpc
-var Serializers = map[SerializeType]Serializer{
-	Proto: ProtoSerializer{},
-}
-
 // Serializer is interface, each serializer has Marshal and Unmarshal functions
 type Serializer interface {
 	Marshal(message interface{}) ([]byte, error)
