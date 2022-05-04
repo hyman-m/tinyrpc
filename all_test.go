@@ -1,15 +1,16 @@
 package tinyrpc
 
 import (
+	"encoding/json"
 	"errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/zehuamama/tinyrpc/compressor"
+	js "github.com/zehuamama/tinyrpc/test.pb/json"
+	pb "github.com/zehuamama/tinyrpc/test.pb/message"
 	"log"
 	"net"
 	"net/rpc"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/zehuamama/tinyrpc/compressor"
-	pb "github.com/zehuamama/tinyrpc/test.pb/message"
 )
 
 var server Server
@@ -21,8 +22,16 @@ func init() {
 	}
 
 	server := NewServer()
-	server.RegisterName("ArithService", new(pb.ArithService))
-	server.Register(new(pb.ArithService)) // error: rpc: service already defined: ArithService
+	server.Register(new(pb.ArithService))
+	go server.Serve(lis)
+
+	lis, err = net.Listen("tcp", ":8009")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server = NewServer(WithSerializer(&Json{}))
+	server.Register(new(js.TestService))
 	go server.Serve(lis)
 }
 
@@ -322,5 +331,61 @@ func TestServer_Register(t *testing.T) {
 	server := NewServer()
 	server.RegisterName("ArithService", new(pb.ArithService))
 	err := server.Register(new(pb.ArithService))
-	assert.Equal(t, errors.New("rpc.Register: type int is not exported"), err)
+	assert.Equal(t, errors.New("rpc: service already defined: ArithService"), err)
+}
+
+// Json .
+type Json struct{}
+
+// Marshal .
+func (_ *Json) Marshal(message interface{}) ([]byte, error) {
+	return json.Marshal(message)
+}
+
+// Unmarshal .
+func (_ *Json) Unmarshal(data []byte, message interface{}) error {
+	return json.Unmarshal(data, message)
+}
+
+// TestNewClientWithSerializer .
+func TestNewClientWithSerializer(t *testing.T) {
+
+	conn, err := net.Dial("tcp", ":8009")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := NewClient(conn, WithSerializer(&Json{}))
+	defer client.Close()
+
+	type expect struct {
+		reply *js.Response
+		err   error
+	}
+	cases := []struct {
+		client         *Client
+		name           string
+		serviceMenthod string
+		arg            *js.Request
+		expect         expect
+	}{
+		{
+			client,
+			"test-1",
+			"TestService.Add",
+			&js.Request{A: 20, B: 5},
+			expect{
+				&js.Response{25},
+				nil,
+			},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			reply := &js.Response{}
+			err := c.client.Call(c.serviceMenthod, c.arg, reply)
+			assert.Equal(t, c.expect.reply, reply)
+			assert.Equal(t, c.expect.err, err)
+		})
+	}
 }

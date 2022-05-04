@@ -31,14 +31,10 @@ func NewServer(opts ...Option) *Server {
 }
 
 // Register register rpc function
-func (s *Server) Register(rcvr ...interface{}) error {
-	for r := range rcvr {
-		err := s.Server.Register(r)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+func (s *Server) Register(rcvr interface{}) error {
+
+	return s.Server.Register(rcvr)
+
 }
 
 // RegisterName register the rpc function with the specified name
