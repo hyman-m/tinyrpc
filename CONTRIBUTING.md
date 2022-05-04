@@ -26,4 +26,5 @@ Your code should comply with the following principles：
 * All public methods should have the corresponding test method.
 
 - All code should have gone through `go fmt`
+- All code should have gone through `goimports`
 - All code should pass `go vet`
