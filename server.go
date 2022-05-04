@@ -32,9 +32,7 @@ func NewServer(opts ...Option) *Server {
 
 // Register register rpc function
 func (s *Server) Register(rcvr interface{}) error {
-
 	return s.Server.Register(rcvr)
-
 }
 
 // RegisterName register the rpc function with the specified name

@@ -3,14 +3,15 @@ package tinyrpc
 import (
 	"encoding/json"
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/zehuamama/tinyrpc/compressor"
-	js "github.com/zehuamama/tinyrpc/test.pb/json"
-	pb "github.com/zehuamama/tinyrpc/test.pb/message"
 	"log"
 	"net"
 	"net/rpc"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/zehuamama/tinyrpc/compressor"
+	js "github.com/zehuamama/tinyrpc/test.data/json"
+	pb "github.com/zehuamama/tinyrpc/test.data/message"
 )
 
 var server Server

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	pb "github.com/zehuamama/tinyrpc/test.pb/message"
+	pb "github.com/zehuamama/tinyrpc/test.data/message"
 )
 
 type test struct{}
