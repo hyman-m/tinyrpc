@@ -95,7 +95,13 @@ func TestProtoSerializer_Unmarshal(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			err := ProtoSerializer{}.Unmarshal(c.arg, c.message)
-			assert.Equal(t, c.expect.message, c.message)
+			if err != nil {
+				assert.Equal(t, c.expect.message.(*pb.ArithRequest).A,
+					c.message.(*pb.ArithRequest).A)
+				assert.Equal(t, c.expect.message.(*pb.ArithRequest).B,
+					c.message.(*pb.ArithRequest).B)
+			}
+
 			assert.Equal(t, c.expect.err, err)
 		})
 	}
