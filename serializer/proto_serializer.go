@@ -7,7 +7,7 @@ package serializer
 import (
 	"errors"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 // NotImplementProtoMessageError refers to param not implemented by proto.Message

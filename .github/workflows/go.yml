@@ -23,6 +23,8 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v3.1.0
       
     - name: Coverage
       run: go test -v ./... -coverprofile=coverage.txt -covermode=atomic
