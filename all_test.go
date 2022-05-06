@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/rpc"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -116,7 +117,7 @@ func TestClient_Call(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			reply := &pb.ArithResponse{}
 			err := c.client.Call(c.serviceMenthod, c.arg, reply)
-			assert.Equal(t, c.expect.reply, reply)
+			assert.Equal(t, true, reflect.DeepEqual(c.expect.reply.C, reply.C))
 			assert.Equal(t, c.expect.err, err)
 		})
 	}
@@ -195,7 +196,7 @@ func TestClient_AsyncCall(t *testing.T) {
 			reply := &pb.ArithResponse{}
 			call := c.client.AsyncCall(c.serviceMenthod, c.arg, reply)
 			err := <-call
-			assert.Equal(t, c.expect.reply, reply)
+			assert.Equal(t, true, reflect.DeepEqual(c.expect.reply.C, reply.C))
 			assert.Equal(t, c.expect.err, err.Error)
 		})
 	}
@@ -236,7 +237,7 @@ func TestNewClientWithSnappyCompress(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			reply := &pb.ArithResponse{}
 			err := c.client.Call(c.serviceMenthod, c.arg, reply)
-			assert.Equal(t, c.expect.reply, reply)
+			assert.Equal(t, true, reflect.DeepEqual(c.expect.reply.C, reply.C))
 			assert.Equal(t, c.expect.err, err)
 		})
 	}
@@ -277,7 +278,7 @@ func TestNewClientWithGzipCompress(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			reply := &pb.ArithResponse{}
 			err := c.client.Call(c.serviceMenthod, c.arg, reply)
-			assert.Equal(t, c.expect.reply, reply)
+			assert.Equal(t, true, reflect.DeepEqual(c.expect.reply.C, reply.C))
 			assert.Equal(t, c.expect.err, err)
 		})
 	}
@@ -318,7 +319,7 @@ func TestNewClientWithZlibCompress(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			reply := &pb.ArithResponse{}
 			err := c.client.Call(c.serviceMenthod, c.arg, reply)
-			assert.Equal(t, c.expect.reply, reply)
+			assert.Equal(t, true, reflect.DeepEqual(c.expect.reply.C, reply.C))
 			assert.Equal(t, c.expect.err, err)
 		})
 	}
@@ -382,7 +383,7 @@ func TestNewClientWithSerializer(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			reply := &js.Response{}
 			err := c.client.Call(c.serviceMenthod, c.arg, reply)
-			assert.Equal(t, c.expect.reply, reply)
+			assert.Equal(t, true, reflect.DeepEqual(c.expect.reply.C, reply.C))
 			assert.Equal(t, c.expect.err, err)
 		})
 	}
