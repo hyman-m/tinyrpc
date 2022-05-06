@@ -84,12 +84,12 @@ func (s *serverCodec) ReadRequestBody(param interface{}) error {
 	}
 
 	if _, ok := compressor.
-		Compressors[compressor.CompressType(s.request.CompressType)]; !ok {
+		Compressors[s.request.GetCompressType()]; !ok {
 		return NotFoundCompressorError
 	}
 
 	req, err := compressor.
-		Compressors[compressor.CompressType(s.request.CompressType)].Unzip(reqBody)
+		Compressors[s.request.GetCompressType()].Unzip(reqBody)
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 		param = nil
 	}
 	if _, ok := compressor.
-		Compressors[compressor.CompressType(s.request.CompressType)]; !ok {
+		Compressors[s.request.GetCompressType()]; !ok {
 		return NotFoundCompressorError
 	}
 
@@ -126,7 +126,7 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 	}
 
 	compressedRespBody, err := compressor.
-		Compressors[compressor.CompressType(s.request.CompressType)].Zip(respBody)
+		Compressors[s.request.GetCompressType()].Zip(respBody)
 	if err != nil {
 		return err
 	}
