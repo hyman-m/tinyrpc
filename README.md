@@ -24,7 +24,7 @@ Fisrt, create a demo and import the tinyrpc package:
 > go mod init demo
 > go get github.com/zehuamama/tinyrpc
 ```
-Under the path of the project, create a protobuf file `arith.proto`:
+under the path of the project, create a protobuf file `arith.proto`:
 ```protobuf
 syntax = "proto3";
 
@@ -91,7 +91,7 @@ func (this *ArithService) Div(args *ArithRequest, reply *ArithResponse) error {
 	return nil
 }
 ```
-We need define our services. 
+we need define our services. 
 
 Finally, under the path of the project, we create a file named `main.go`, the code is as follows:
 ```go
@@ -116,7 +116,7 @@ func main() {
 	server.Serve(lis)
 }
 ```
-A tinyrpc server is completed.
+a tinyrpc server is completed.
 
 ## Client
 We can create a tinyrpc client and call it synchronously with the `Add` function:
@@ -155,6 +155,62 @@ import "github.com/zehuamama/tinyrpc/compressor"
 ...
 client := tinyrpc.NewClient(conn, tinyrpc.WithCompress(compressor.Gzip))
 
+```
+## Custom Serializer
+If you want to customize the serializer, you must implement the `Serializer` interface:
+```go
+type Serializer interface {
+	Marshal(message interface{}) ([]byte, error)
+	Unmarshal(data []byte, message interface{}) error
+}
+```
+`JsonSerializer` is a serializer based Json:
+```go
+type JsonSerializer struct{}
+
+func (_ JsonSerializer) Marshal(message interface{}) ([]byte, error) {
+	return json.Marshal(message)
+}
+
+func (_ JsonSerializer) Unmarshal(data []byte, message interface{}) error {
+	return json.Unmarshal(data, message)
+}
+```
+moving on, we create a HelloService with the following code:
+```go
+type HelloRequest struct {
+	Req string `json:"req"`
+}
+
+type HelloResponce struct {
+	Resp string `json:"resp"`
+}
+
+type HelloService struct{}
+
+func (_ *HelloService) SayHello(args *HelloRequest, reply *HelloResponce) error {
+	reply.Resp = args.Req
+	return nil
+}
+
+```
+finally, we need to set the serializer on the rpc server:
+```go
+func main() {
+	lis, err := net.Listen("tcp", ":8082")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	server := tinyrpc.NewServer(tinyrpc.WithSerializer(JsonSerializer{}))
+	server.Register(new(HelloService))
+	server.Serve(lis)
+}
+```
+a rpc server based on json serializer is completed.
+Remember that when the rpc client calls the service, it also needs to set the serializer:
+```go
+tinyrpc.NewClient(conn,tinyrpc.WithSerializer(JsonSerializer{}))
 ```
 ## Contributing
 
