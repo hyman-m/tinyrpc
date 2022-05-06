@@ -80,7 +80,6 @@ func (r *RequestHeader) Unmarshal(data []byte) (err error) {
 	idx += size
 
 	r.Checksum = binary.LittleEndian.Uint32(data[idx:])
-	idx += Uint32Size
 	return
 }
 
@@ -150,7 +149,6 @@ func (r *ResponseHeader) Unmarshal(data []byte) (err error) {
 	idx += size
 
 	r.Checksum = binary.LittleEndian.Uint32(data[idx:])
-	idx += Uint32Size
 	return
 }
 
