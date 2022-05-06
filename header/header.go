@@ -7,6 +7,8 @@ package header
 import (
 	"encoding/binary"
 	"errors"
+	"github.com/zehuamama/tinyrpc/compressor"
+	"sync"
 )
 
 const (
@@ -29,6 +31,7 @@ type CompressType uint16
 // |    uint16    | uvarint+string |  uvarint |   uvarint  |  uint32  |
 // +--------------+----------------+----------+------------+----------+
 type RequestHeader struct {
+	sync.RWMutex
 	CompressType CompressType
 	Method       string
 	ID           uint64
@@ -38,6 +41,8 @@ type RequestHeader struct {
 
 // Marshal will encode request header into a byte slice
 func (r *RequestHeader) Marshal() []byte {
+	r.RLock()
+	defer r.RUnlock()
 	idx := 0
 	// MaxHeaderSize = 2 + 10 + len(string) + 10 + 10 + 4
 	header := make([]byte, MaxHeaderSize+len(r.Method))
@@ -56,6 +61,8 @@ func (r *RequestHeader) Marshal() []byte {
 
 // Unmarshal will decode request header into a byte slice
 func (r *RequestHeader) Unmarshal(data []byte) (err error) {
+	r.Lock()
+	defer r.Unlock()
 	if len(data) == 0 {
 		return UnmarshalError
 	}
@@ -84,8 +91,17 @@ func (r *RequestHeader) Unmarshal(data []byte) (err error) {
 	return
 }
 
+// GetCompressType get compress type
+func (r *RequestHeader) GetCompressType() compressor.CompressType {
+	r.RLock()
+	defer r.RUnlock()
+	return compressor.CompressType(r.CompressType)
+}
+
 // ResetHeader reset request header
 func (r *RequestHeader) ResetHeader() {
+	r.Lock()
+	defer r.Unlock()
 	r.ID = 0
 	r.Checksum = 0
 	r.Method = ""
@@ -100,6 +116,7 @@ func (r *RequestHeader) ResetHeader() {
 // |    uint16    | uvarint | uvarint+string |    uvarint  |  uint32  |
 // +--------------+---------+----------------+-------------+----------+
 type ResponseHeader struct {
+	sync.RWMutex
 	CompressType CompressType
 	ID           uint64
 	Error        string
@@ -109,6 +126,8 @@ type ResponseHeader struct {
 
 // Marshal will encode response header into a byte slice
 func (r *ResponseHeader) Marshal() []byte {
+	r.RLock()
+	defer r.RUnlock()
 	idx := 0
 	header := make([]byte, MaxHeaderSize+len(r.Error)) // prevent panic
 
@@ -126,6 +145,8 @@ func (r *ResponseHeader) Marshal() []byte {
 
 // Unmarshal will decode response header into a byte slice
 func (r *ResponseHeader) Unmarshal(data []byte) (err error) {
+	r.Lock()
+	defer r.Unlock()
 	if len(data) == 0 {
 		return UnmarshalError
 	}
@@ -153,8 +174,17 @@ func (r *ResponseHeader) Unmarshal(data []byte) (err error) {
 	return
 }
 
+// GetCompressType get compress type
+func (r *ResponseHeader) GetCompressType() compressor.CompressType {
+	r.RLock()
+	defer r.RUnlock()
+	return compressor.CompressType(r.CompressType)
+}
+
 // ResetHeader reset response header
 func (r *ResponseHeader) ResetHeader() {
+	r.Lock()
+	defer r.Unlock()
 	r.Error = ""
 	r.ID = 0
 	r.CompressType = 0
