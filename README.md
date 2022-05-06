@@ -208,6 +208,7 @@ func main() {
 }
 ```
 a rpc server based on json serializer is completed.
+
 Remember that when the rpc client calls the service, it also needs to set the serializer:
 ```go
 tinyrpc.NewClient(conn,tinyrpc.WithSerializer(JsonSerializer{}))
