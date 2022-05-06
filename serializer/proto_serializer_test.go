@@ -27,7 +27,7 @@ func TestProtoSerializer_Marshal(t *testing.T) {
 	}{
 		{
 			name: "test-1",
-			arg:  &pb.ArithRequest{1, 2},
+			arg:  &pb.ArithRequest{A: 1, B: 2},
 			expect: expect{
 				data: []byte{0x9, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xf0,
 					0x3f, 0x11, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x40},
@@ -78,7 +78,7 @@ func TestProtoSerializer_Unmarshal(t *testing.T) {
 				0x3f, 0x11, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x40},
 			message: &pb.ArithRequest{},
 			expect: expect{
-				message: &pb.ArithRequest{1, 2},
+				message: &pb.ArithRequest{A: 1, B: 2},
 				err:     nil,
 			},
 		},

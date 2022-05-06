@@ -14,8 +14,6 @@ import (
 	pb "github.com/zehuamama/tinyrpc/test.data/message"
 )
 
-var server Server
-
 func init() {
 	lis, err := net.Listen("tcp", ":8008")
 	if err != nil {
@@ -23,7 +21,11 @@ func init() {
 	}
 
 	server := NewServer()
-	server.Register(new(pb.ArithService))
+	err = server.Register(new(pb.ArithService))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	go server.Serve(lis)
 
 	lis, err = net.Listen("tcp", ":8009")
@@ -32,7 +34,10 @@ func init() {
 	}
 
 	server = NewServer(WithSerializer(&Json{}))
-	server.Register(new(js.TestService))
+	err = server.Register(new(js.TestService))
+	if err != nil {
+		log.Fatal(err)
+	}
 	go server.Serve(lis)
 }
 
@@ -58,43 +63,42 @@ func TestClient_Call(t *testing.T) {
 		expect         expect
 	}{
 		{
-			client,
-			"test-1",
-			"ArithService.Add",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{25},
-				nil,
+			client:         client,
+			name:           "test-1",
+			serviceMenthod: "ArithService.Add",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 25},
+				err:   nil,
 			},
 		},
 		{
-			client,
-			"test-2",
-			"ArithService.Sub",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{15},
-				nil,
+			client:         client,
+			name:           "test-2",
+			serviceMenthod: "ArithService.Sub",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 15},
+				err:   nil,
 			},
 		},
 		{
-			client,
-			"test-3",
-			"ArithService.Mul",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{100},
-				nil,
+			client:         client,
+			name:           "test-3",
+			serviceMenthod: "ArithService.Mul",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 100},
+				err:   nil,
 			},
 		},
 		{
-			client,
-			"test-4",
-			"ArithService.Div",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{4},
-				nil,
+			client:         client,
+			name:           "test-4",
+			serviceMenthod: "ArithService.Div",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 4},
 			},
 		},
 		{
@@ -140,43 +144,39 @@ func TestClient_AsyncCall(t *testing.T) {
 		expect         expect
 	}{
 		{
-			client,
-			"test-1",
-			"ArithService.Add",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{25},
-				nil,
+			client:         client,
+			name:           "test-1",
+			serviceMenthod: "ArithService.Add",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 25},
 			},
 		},
 		{
-			client,
-			"test-2",
-			"ArithService.Sub",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{15},
-				nil,
+			client:         client,
+			name:           "test-2",
+			serviceMenthod: "ArithService.Sub",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 15},
 			},
 		},
 		{
-			client,
-			"test-3",
-			"ArithService.Mul",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{100},
-				nil,
+			client:         client,
+			name:           "test-3",
+			serviceMenthod: "ArithService.Mul",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 100},
 			},
 		},
 		{
-			client,
-			"test-4",
-			"ArithService.Div",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{4},
-				nil,
+			client:         client,
+			name:           "test-4",
+			serviceMenthod: "ArithService.Div",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 4},
 			},
 		},
 		{
@@ -223,13 +223,12 @@ func TestNewClientWithSnappyCompress(t *testing.T) {
 		expect         expect
 	}{
 		{
-			client,
-			"test-1",
-			"ArithService.Add",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{25},
-				nil,
+			client:         client,
+			name:           "test-1",
+			serviceMenthod: "ArithService.Add",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 25},
 			},
 		},
 	}
@@ -265,13 +264,12 @@ func TestNewClientWithGzipCompress(t *testing.T) {
 		expect         expect
 	}{
 		{
-			client,
-			"test-1",
-			"ArithService.Add",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{25},
-				nil,
+			client:         client,
+			name:           "test-1",
+			serviceMenthod: "ArithService.Add",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 25},
 			},
 		},
 	}
@@ -307,13 +305,12 @@ func TestNewClientWithZlibCompress(t *testing.T) {
 		expect         expect
 	}{
 		{
-			client,
-			"test-1",
-			"ArithService.Add",
-			&pb.ArithRequest{A: 20, B: 5},
-			expect{
-				&pb.ArithResponse{25},
-				nil,
+			client:         client,
+			name:           "test-1",
+			serviceMenthod: "ArithService.Add",
+			arg:            &pb.ArithRequest{A: 20, B: 5},
+			expect: expect{
+				reply: &pb.ArithResponse{C: 25},
 			},
 		},
 	}
@@ -330,8 +327,9 @@ func TestNewClientWithZlibCompress(t *testing.T) {
 // TestServer_Register .
 func TestServer_Register(t *testing.T) {
 	server := NewServer()
-	server.RegisterName("ArithService", new(pb.ArithService))
-	err := server.Register(new(pb.ArithService))
+	err := server.RegisterName("ArithService", new(pb.ArithService))
+	assert.Equal(t, nil, err)
+	err = server.Register(new(pb.ArithService))
 	assert.Equal(t, errors.New("rpc: service already defined: ArithService"), err)
 }
 
@@ -371,13 +369,12 @@ func TestNewClientWithSerializer(t *testing.T) {
 		expect         expect
 	}{
 		{
-			client,
-			"test-1",
-			"TestService.Add",
-			&js.Request{A: 20, B: 5},
-			expect{
-				&js.Response{25},
-				nil,
+			client:         client,
+			name:           "test-1",
+			serviceMenthod: "TestService.Add",
+			arg:            &js.Request{A: 20, B: 5},
+			expect: expect{
+				reply: &js.Response{C: 25},
 			},
 		},
 	}

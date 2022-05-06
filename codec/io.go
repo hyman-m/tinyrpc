@@ -13,7 +13,7 @@ import (
 func sendFrame(w io.Writer, data []byte) (err error) {
 	var size [binary.MaxVarintLen64]byte
 
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		n := binary.PutUvarint(size[:], uint64(0))
 		if err = write(w, size[:n]); err != nil {
 			return
