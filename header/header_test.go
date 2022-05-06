@@ -5,6 +5,7 @@
 package header
 
 import (
+	"github.com/zehuamama/tinyrpc/compressor"
 	"reflect"
 	"testing"
 
@@ -155,4 +156,30 @@ func TestResponseHeader_ResetHeader(t *testing.T) {
 	}
 	header.ResetHeader()
 	assert.Equal(t, true, reflect.DeepEqual(header, &ResponseHeader{}))
+}
+
+// TestResponseHeader_GetCompressType .
+func TestResponseHeader_GetCompressType(t *testing.T) {
+	header := &ResponseHeader{
+		CompressType: 0,
+		Error:        "error",
+		ID:           12455,
+		ResponseLen:  266,
+		Checksum:     3845236589,
+	}
+
+	assert.Equal(t, true, reflect.DeepEqual(compressor.CompressType(0), header.GetCompressType()))
+}
+
+// TestRequestHeader_GetCompressType .
+func TestRequestHeader_GetCompressType(t *testing.T) {
+	header := &RequestHeader{
+		CompressType: 0,
+		Method:       "Add",
+		ID:           12455,
+		RequestLen:   266,
+		Checksum:     3845236589,
+	}
+
+	assert.Equal(t, true, reflect.DeepEqual(compressor.CompressType(0), header.GetCompressType()))
 }
