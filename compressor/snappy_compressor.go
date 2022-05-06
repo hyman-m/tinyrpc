@@ -24,6 +24,9 @@ func (_ SnappyCompressor) Zip(data []byte) ([]byte, error) {
 		w.Close()
 	}()
 	_, err := w.Write(data)
+	if err != nil {
+		return nil, err
+	}
 	err = w.Flush()
 	if err != nil {
 		return nil, err
