@@ -93,7 +93,7 @@ func (this *ArithService) Div(args *ArithRequest, reply *ArithResponse) error {
 ```
 we need to define our services. 
 
-Finally, under the path of the project, we create a file named `main.go`, the code is as follows:
+Finally, under the path of the project, we create a file named `main.go`, the code is shown below:
 ```go
 package main
 
