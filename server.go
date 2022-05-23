@@ -5,6 +5,7 @@
 package tinyrpc
 
 import (
+	"log"
 	"net"
 	"net/rpc"
 
@@ -42,6 +43,7 @@ func (s *Server) RegisterName(name string, rcvr interface{}) error {
 
 // Serve start service
 func (s *Server) Serve(lis net.Listener) {
+	log.Printf("tinyrpc started on: %s", lis.Addr().String())
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
