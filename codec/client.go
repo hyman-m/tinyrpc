@@ -124,8 +124,8 @@ func (c *clientCodec) ReadResponseBody(param interface{}) error {
 		}
 	}
 
-	if _, ok := compressor.Compressors[c.response.GetCompressType()]; !ok {
-		return NotFoundCompressorError
+	if c.response.GetCompressType() != c.compressor {
+		return CompressorTypeMismatchError
 	}
 
 	resp, err := compressor.Compressors[c.response.GetCompressType()].Unzip(respBody)

@@ -42,14 +42,14 @@ func init() {
 	go server.Serve(lis)
 }
 
-// TestClient_Call test client synchronously call
-func TestClient_Call(t *testing.T) {
+// test client synchronously call
+func client_call(t *testing.T, comporessType compressor.CompressType) {
 	conn, err := net.Dial("tcp", ":8008")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	client := NewClient(conn)
+	client := NewClient(conn, WithCompress(comporessType))
 	defer client.Close()
 
 	type expect struct {
@@ -121,6 +121,11 @@ func TestClient_Call(t *testing.T) {
 			assert.Equal(t, c.expect.err, err)
 		})
 	}
+}
+
+// TestClient_Call test client synchronously call
+func TestClient_Call(t *testing.T) {
+	client_call(t, compressor.Raw)
 }
 
 // TestClient_AsyncCall test client asynchronously call
@@ -204,125 +209,17 @@ func TestClient_AsyncCall(t *testing.T) {
 
 // TestNewClientWithSnappyCompress test snappy comressor
 func TestNewClientWithSnappyCompress(t *testing.T) {
-	conn, err := net.Dial("tcp", ":8008")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-	client := NewClient(conn, WithCompress(compressor.Gzip))
-	defer client.Close()
-
-	type expect struct {
-		reply *pb.ArithResponse
-		err   error
-	}
-	cases := []struct {
-		client         *Client
-		name           string
-		serviceMenthod string
-		arg            *pb.ArithRequest
-		expect         expect
-	}{
-		{
-			client:         client,
-			name:           "test-1",
-			serviceMenthod: "ArithService.Add",
-			arg:            &pb.ArithRequest{A: 20, B: 5},
-			expect: expect{
-				reply: &pb.ArithResponse{C: 25},
-			},
-		},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			reply := &pb.ArithResponse{}
-			err := c.client.Call(c.serviceMenthod, c.arg, reply)
-			assert.Equal(t, true, reflect.DeepEqual(c.expect.reply.C, reply.C))
-			assert.Equal(t, c.expect.err, err)
-		})
-	}
+	client_call(t, compressor.Snappy)
 }
 
 // TestNewClientWithGzipCompress test gzip comressor
 func TestNewClientWithGzipCompress(t *testing.T) {
-	conn, err := net.Dial("tcp", ":8008")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-	client := NewClient(conn, WithCompress(compressor.Gzip))
-	defer client.Close()
-
-	type expect struct {
-		reply *pb.ArithResponse
-		err   error
-	}
-	cases := []struct {
-		client         *Client
-		name           string
-		serviceMenthod string
-		arg            *pb.ArithRequest
-		expect         expect
-	}{
-		{
-			client:         client,
-			name:           "test-1",
-			serviceMenthod: "ArithService.Add",
-			arg:            &pb.ArithRequest{A: 20, B: 5},
-			expect: expect{
-				reply: &pb.ArithResponse{C: 25},
-			},
-		},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			reply := &pb.ArithResponse{}
-			err := c.client.Call(c.serviceMenthod, c.arg, reply)
-			assert.Equal(t, true, reflect.DeepEqual(c.expect.reply.C, reply.C))
-			assert.Equal(t, c.expect.err, err)
-		})
-	}
+	client_call(t, compressor.Gzip)
 }
 
 // TestNewClientWithZlibCompress test zlib compressor
 func TestNewClientWithZlibCompress(t *testing.T) {
-	conn, err := net.Dial("tcp", ":8008")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-	client := NewClient(conn, WithCompress(compressor.Gzip))
-	defer client.Close()
-
-	type expect struct {
-		reply *pb.ArithResponse
-		err   error
-	}
-	cases := []struct {
-		client         *Client
-		name           string
-		serviceMenthod string
-		arg            *pb.ArithRequest
-		expect         expect
-	}{
-		{
-			client:         client,
-			name:           "test-1",
-			serviceMenthod: "ArithService.Add",
-			arg:            &pb.ArithRequest{A: 20, B: 5},
-			expect: expect{
-				reply: &pb.ArithResponse{C: 25},
-			},
-		},
-	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			reply := &pb.ArithResponse{}
-			err := c.client.Call(c.serviceMenthod, c.arg, reply)
-			assert.Equal(t, true, reflect.DeepEqual(c.expect.reply.C, reply.C))
-			assert.Equal(t, c.expect.err, err)
-		})
-	}
+	client_call(t, compressor.Zlib)
 }
 
 // TestServer_Register .
