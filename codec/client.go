@@ -67,7 +67,7 @@ func (c *clientCodec) WriteRequest(r *rpc.Request, param interface{}) error {
 	h.ID = r.Seq
 	h.Method = r.ServiceMethod
 	h.RequestLen = uint32(len(compressedReqBody))
-	h.CompressType = header.CompressType(c.compressor)
+	h.CompressType = compressor.CompressType(c.compressor)
 	h.Checksum = crc32.ChecksumIEEE(compressedReqBody)
 
 	if err := sendFrame(c.w, h.Marshal()); err != nil {
@@ -124,8 +124,8 @@ func (c *clientCodec) ReadResponseBody(param interface{}) error {
 		}
 	}
 
-	if _, ok := compressor.Compressors[c.response.GetCompressType()]; !ok {
-		return NotFoundCompressorError
+	if c.response.GetCompressType() != c.compressor {
+		return CompressorTypeMismatchError
 	}
 
 	resp, err := compressor.Compressors[c.response.GetCompressType()].Unzip(respBody)

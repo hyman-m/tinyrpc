@@ -16,6 +16,11 @@ import (
 	"github.com/zehuamama/tinyrpc/serializer"
 )
 
+type reqCtx struct {
+	requestID   uint64
+	compareType compressor.CompressType
+}
+
 type serverCodec struct {
 	r io.Reader
 	w io.Writer
@@ -25,7 +30,7 @@ type serverCodec struct {
 	serializer serializer.Serializer
 	mutex      sync.Mutex // protects seq, pending
 	seq        uint64
-	pending    map[uint64]uint64
+	pending    map[uint64]*reqCtx
 }
 
 // NewServerCodec Create a new server codec
@@ -35,7 +40,7 @@ func NewServerCodec(conn io.ReadWriteCloser, serializer serializer.Serializer) r
 		w:          bufio.NewWriter(conn),
 		c:          conn,
 		serializer: serializer,
-		pending:    make(map[uint64]uint64),
+		pending:    make(map[uint64]*reqCtx),
 	}
 }
 
@@ -52,7 +57,7 @@ func (s *serverCodec) ReadRequestHeader(r *rpc.Request) error {
 	}
 	s.mutex.Lock()
 	s.seq++
-	s.pending[s.seq] = s.request.ID
+	s.pending[s.seq] = &reqCtx{s.request.ID, s.request.GetCompressType()}
 	r.ServiceMethod = s.request.Method
 	r.Seq = s.seq
 	s.mutex.Unlock()
@@ -100,7 +105,7 @@ func (s *serverCodec) ReadRequestBody(param interface{}) error {
 // WriteResponse Write the rpc response header and body to the io stream
 func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 	s.mutex.Lock()
-	id, ok := s.pending[r.Seq]
+	reqCtx, ok := s.pending[r.Seq]
 	if !ok {
 		s.mutex.Unlock()
 		return InvalidSequenceError
@@ -112,7 +117,7 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 		param = nil
 	}
 	if _, ok := compressor.
-		Compressors[s.request.GetCompressType()]; !ok {
+		Compressors[reqCtx.compareType]; !ok {
 		return NotFoundCompressorError
 	}
 
@@ -126,7 +131,7 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 	}
 
 	compressedRespBody, err := compressor.
-		Compressors[s.request.GetCompressType()].Zip(respBody)
+		Compressors[reqCtx.compareType].Zip(respBody)
 	if err != nil {
 		return err
 	}
@@ -135,11 +140,11 @@ func (s *serverCodec) WriteResponse(r *rpc.Response, param interface{}) error {
 		h.ResetHeader()
 		header.ResponsePool.Put(h)
 	}()
-	h.ID = id
+	h.ID = reqCtx.requestID
 	h.Error = r.Error
 	h.ResponseLen = uint32(len(compressedRespBody))
 	h.Checksum = crc32.ChecksumIEEE(compressedRespBody)
-	h.CompressType = s.request.CompressType
+	h.CompressType = reqCtx.compareType
 
 	if err = sendFrame(s.w, h.Marshal()); err != nil {
 		return err
