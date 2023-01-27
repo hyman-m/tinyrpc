@@ -78,11 +78,10 @@ func generateCli(plugin *protogen.Plugin) error {
 		pkg := fmt.Sprintf("package %s", f.GoPackageName)
 		t.P(pkg)
 		t.P()
-		importCode := fmt.Sprintf(`import (
+		importCode := `import (
 		"github.com/zehuamama/tinyrpc"
 		"net"
-	)
-	`)
+		)`
 		t.P(importCode)
 		t.P()
 		for _, s := range f.Services {
