@@ -14,8 +14,8 @@ Language&nbsp;&nbsp;English
 - install `protoc-gen-go` and `protoc-gen-tinyrpc`:
 
 ```
-go install github.com/golang/protobuf/protoc-gen-go
-go install github.com/zehuamama/tinyrpc/protoc-gen-tinyrpc
+go install github.com/golang/protobuf/protoc-gen-go@latest
+go install github.com/zehuamama/tinyrpc/protoc-gen-tinyrpc@latest
 ```
 
 ## Quick Start
@@ -131,6 +131,7 @@ We can create a tinyrpc client and call it synchronously with the `Add` function
 import (
         "demo/message"
 	"github.com/zehuamama/tinyrpc"
+)
 ...
 
 conn, err := net.Dial("tcp", ":8082")
