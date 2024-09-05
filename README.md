@@ -1,6 +1,6 @@
 # tinyrpc
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/zehuamama/tinyrpc)&nbsp;](https://goreportcard.com/report/github.com/zehuamama/tinyrpc)![GitHub top language](https://img.shields.io/github/languages/top/zehuamama/tinyrpc)&nbsp;![GitHub](https://img.shields.io/github/license/zehuamama/tinyrpc)&nbsp;[![CodeFactor](https://www.codefactor.io/repository/github/zehuamama/tinyrpc/badge)](https://www.codefactor.io/repository/github/zehuamama/tinyrpc)&nbsp;[![codecov](https://codecov.io/gh/zehuamama/tinyrpc/branch/main/graph/badge.svg)](https://codecov.io/gh/zehuamama/tinyrpc)&nbsp; ![go_version](https://img.shields.io/badge/go%20version-1.17-yellow)
+[![Go Report Card](https://goreportcard.com/badge/github.com/wanzoma/tinyrpc)](https://goreportcard.com/report/github.com/wanzoma/tinyrpc)&nbsp;![GitHub top language](https://img.shields.io/github/languages/top/wanzoma/tinyrpc)&nbsp;![GitHub](https://img.shields.io/github/license/wanzoma/tinyrpc)&nbsp;[![CodeFactor](https://www.codefactor.io/repository/github/wanzoma/tinyrpc/badge)](https://www.codefactor.io/repository/github/wanzoma/tinyrpc)&nbsp;[![codecov](https://codecov.io/gh/wanzoma/tinyrpc/branch/main/graph/badge.svg)](https://codecov.io/gh/wanzoma/tinyrpc)&nbsp; ![go_version](https://img.shields.io/badge/go%20version-1.17-yellow)
 
 tinyrpc is a high-performance RPC framework based on `protocol buffer` encoding. It is based on `net/rpc` and supports multiple compression formats (`gzip`, `snappy`, `zlib`).
 
@@ -15,7 +15,7 @@ Language&nbsp;&nbsp;English
 
 ```
 go install github.com/golang/protobuf/protoc-gen-go@latest
-go install github.com/zehuamama/tinyrpc/protoc-gen-tinyrpc@latest
+go install github.com/wanzoma/tinyrpc/protoc-gen-tinyrpc@latest
 ```
 
 ## Quick Start
