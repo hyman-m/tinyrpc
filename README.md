@@ -1,6 +1,6 @@
 # mini-rpc
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/wanzoma/mini-rpc)](https://goreportcard.com/report/github.com/wanzoma/mini-rpc)&nbsp;![GitHub top language](https://img.shields.io/github/languages/top/wanzoma/mini-rpc)&nbsp;![GitHub](https://img.shields.io/github/license/wanzoma/mini-rpc)&nbsp;[![CodeFactor](https://www.codefactor.io/repository/github/wanzoma/mini-rpc/badge)](https://www.codefactor.io/repository/github/wanzoma/mini-rpc)&nbsp;[![codecov](https://codecov.io/gh/wanzoma/mini-rpc/branch/main/graph/badge.svg)](https://codecov.io/gh/wanzoma/mini-rpc)&nbsp; ![go_version](https://img.shields.io/badge/go%20version-1.17-yellow)
+[![Go Report Card](https://goreportcard.com/badge/github.com/wanzo-mini/mini-rpc)](https://goreportcard.com/report/github.com/wanzo-mini/mini-rpc)&nbsp;![GitHub top language](https://img.shields.io/github/languages/top/wanzo-mini/mini-rpc)&nbsp;![GitHub](https://img.shields.io/github/license/wanzo-mini/mini-rpc)&nbsp;[![CodeFactor](https://www.codefactor.io/repository/github/wanzo-mini/mini-rpc/badge)](https://www.codefactor.io/repository/github/wanzo-mini/mini-rpc)&nbsp;[![codecov](https://codecov.io/gh/wanzoma/mini-rpc/branch/main/graph/badge.svg)](https://codecov.io/gh/wanzo-mini/mini-rpc)&nbsp; ![go_version](https://img.shields.io/badge/go%20version-1.17-yellow)
 
 mini-rpc is a high-performance RPC framework based on `protocol buffer` encoding. It is based on `net/rpc` and supports multiple compression formats (`gzip`, `snappy`, `zlib`).
 
